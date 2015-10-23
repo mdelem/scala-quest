@@ -43,4 +43,36 @@ object Implicits {
   implicit def stringToSomeString(s: String) = Some(s)
 
   implicit def itemToItemGroup(i:Item) = ItemGroup(Seq(i))
+  
+  implicit def partAsSeq(p : Part) = Seq(p)
+  implicit class PartAsSeq(p : Part) {
+    def ~(next : Part) : Seq[Part] = Seq(p, next)
+  }
+  implicit class PartSeq(p : Seq[Part]) {
+    def ~(next : Part) : Seq[Part] = p ++ next
+  }
+  
+  implicit def itemGroupAsSeq(p : ItemGroup) = Seq(p)
+  implicit class ItemGroupAsSeq(p : ItemGroup) {
+    def ~(next : ItemGroup) : Seq[ItemGroup] = Seq(p, next)
+  }
+  implicit class ItemGroupSeq(p : Seq[ItemGroup]) {
+    def ~(next : ItemGroup) : Seq[ItemGroup] = p ++ next
+  }
+  
+  implicit def itemAsSeq(i : Item) = Seq(i)
+  implicit class ItemAsSeq(i : Item) {
+    def ~(next : Item) : Seq[Item] = Seq(i, next)
+  }
+  implicit class ItemSeq(i : Seq[Item]) {
+    def ~(next : Item) : Seq[Item] = i ++ next
+  }
+  
+  implicit def simpleItemAsSeq(i : SimpleItem) = Seq(i)
+  implicit class SimpleItemAsSeq(i : SimpleItem) {
+    def ~(next : SimpleItem) : Seq[SimpleItem] = Seq(i, next)
+  }
+  implicit class SimpleItemSeq(i : Seq[SimpleItem]) {
+    def ~(next : SimpleItem) : Seq[SimpleItem] = i ++ next
+  }
 }

@@ -6,18 +6,19 @@ import com.github.mdelem.scalaquest.Implicits._
 class QuestionnaireSpec extends FlatSpec with Matchers {
   val q = Questionnaire(
     name = "q1",
-    Seq(Part(
-      Seq(
-        ItemGroup(
-          Seq(
-            SimpleItem("Age", "Integer"),
-            SimpleItem("Gender"))),
-        SimpleItem("I like chocolate", "1-10 Scale"),
-        SimpleItem("I like vanilla", "1-10 Scale"),
-        ComplexItem(
-          Seq(
-            SimpleItem("I prefer chocolate", "Boolean"),
-            SimpleItem("I prefer vanilla", "Boolean")))))))
+    Part(
+      ItemGroup(
+        SimpleItem("Age", "Integer") ~
+        SimpleItem("Gender")
+      ) ~
+      SimpleItem("I like chocolate", "1-10 Scale") ~
+      SimpleItem("I like vanilla", "1-10 Scale") ~
+      ComplexItem(
+        SimpleItem("I prefer chocolate", "Boolean") ~
+        SimpleItem("I prefer vanilla", "Boolean")
+      )
+    )
+  )
 
   "A Questionnaire" should "contains parts" in {
     q.parts.size should be(1)
