@@ -42,9 +42,5 @@ object SimpleItem {
 object Implicits {
   implicit def stringToSomeString(s: String) = Some(s)
 
-  implicit def partTupleToSeq(p: Product): Seq[Part] = p.productIterator.toList
-  implicit def itemGroupTupleToSeq(p: Product): Seq[ItemGroup] = p.productIterator.toList
-
-  implicit def simpleItemTupleToSeq(p: Product): Seq[SimpleItem] = p.productIterator.toList
-
+  implicit def itemToItemGroup(i:Item) = ItemGroup(Seq(i))
 }
