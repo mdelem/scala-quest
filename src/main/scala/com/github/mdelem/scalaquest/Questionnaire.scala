@@ -36,14 +36,11 @@ object ComplexItem {
 
 object SimpleItem {
   def apply[T](proposition: String): SimpleItem[T] = SimpleItem(None, proposition)
-//  def apply[T](proposition: String, acceptedType: String): SimpleItem[T] = SimpleItem(None, proposition)
 }
 
 object Implicits {
   implicit def stringToSomeString(s: String) = Some(s)
 
-  implicit def itemToItemGroup(i:Item) = ItemGroup(Seq(i))
-  implicit def itemToSeqItemGroup(i:Item) = Seq(ItemGroup(Seq(i)))
   
   implicit def partAsSeq(p : Part) = Seq(p)
   implicit class PartAsSeq(p : Part) {
@@ -62,6 +59,10 @@ object Implicits {
   }
   
   implicit def itemAsSeq(i : Item) = Seq(i)
+  implicit def simpleItemAsSeq[T](i : SimpleItem[T]) = Seq(i)
+  implicit def itemToItemGroup(i:Item) = ItemGroup(Seq(i))
+  implicit def itemToSeqItemGroup(i:Item) = Seq(ItemGroup(Seq(i)))
+  
   implicit class ItemAsSeq(i : Item) {
     def ~(next : Item) : Seq[Item] = Seq(i, next)
   }
@@ -70,7 +71,6 @@ object Implicits {
     def ~(next : ItemGroup) : Seq[ItemGroup] = i.map(j=>ItemGroup(Seq(j))) :+ next
   }
   
-  implicit def simpleItemAsSeq[T](i : SimpleItem[T]) = Seq(i)
   implicit class SimpleItemAsSeq[T](i : SimpleItem[T]) {
     def ~[U](next : SimpleItem[U]) : Seq[SimpleItem[_]] = Seq(i, next)
     def ~(next : ItemGroup) : Seq[ItemGroup] = Seq(ItemGroup(Seq(i)), next)

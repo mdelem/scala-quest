@@ -67,6 +67,9 @@ class QuestionnaireSpec extends FlatSpec with Matchers {
           Part(
             ItemGroup(
               ComplexItem(
-                SimpleItem[Boolean]("I prefer vanilla")))))
+                SimpleItem[Boolean]("I prefer vanilla")))) ~
+            Part(
+              SimpleItem[Int]("I like chocolate") ~ ItemGroup(
+                SimpleItem[Int]("d1", "Age"))))
 
 }
