@@ -27,8 +27,9 @@ class ActionsFiltersAndMethodsSpec extends FlatSpec with Matchers {
     defaultActions.service(Request(q.parts.head.groups.head)) should be(Response(Some(q.parts.head.groups.head)))
   }
   "The default post'" should "step in the questionnaire" in {
-    defaultActions.service(Request(q.parts.head.groups.head,
-      Map(q.parts.head.groups.head.items.head.asInstanceOf[SimpleItem[Int]] -> 40))) should be(Response(Some(q.parts.head.groups(1))))
+    val request = Request(q.parts.head.groups.head,
+      Map(q.parts.head.groups.head.items.head.asInstanceOf[SimpleItem[Int]] -> 40))
+    defaultActions.service(request) should be(defaultActions.step(request))
   }
 
   val filteredActions = Actions(q)
