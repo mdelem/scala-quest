@@ -8,17 +8,44 @@ trait QuestionnaireNode
 
 case class SimpleItem[T](name: Option[String] = None, proposition: String) extends Item
 
-case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false) extends Item
+case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false) extends Item {
+  private val itemMap : Map[String, SimpleItem[_]] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
+  def item[T](name: String) :SimpleItem[T] = itemMap(name).asInstanceOf[SimpleItem[T]]
+}
 
-case class ItemGroup(name: Option[String] = None, items: Seq[Item], randomized: Boolean = false) extends QuestionnaireNode
+case class ItemGroup(name: Option[String] = None, items: Seq[Item], randomized: Boolean = false) extends QuestionnaireNode {
+  val item : Map[String, Item] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
+  protected[scalaquest] val simpleItems : Map[String, SimpleItem[_]] = items.filter(i => i.name.isDefined && i.isInstanceOf[SimpleItem[_]]).map(i => (i.name.get, i.asInstanceOf[SimpleItem[_]])).toMap
+  def simpleItem[T](name: String) : SimpleItem[T] = simpleItems(name).asInstanceOf[SimpleItem[T]]
+  val complexItem : Map[String, ComplexItem] = items.filter(i => i.name.isDefined && i.isInstanceOf[ComplexItem]).map(i => (i.name.get, i.asInstanceOf[ComplexItem])).toMap
+}
 
-case class Part(name: Option[String] = None, groups: Seq[ItemGroup], randomized: Boolean = false) extends QuestionnaireNode
+case class Part(name: Option[String] = None, groups: Seq[ItemGroup], randomized: Boolean = false) extends QuestionnaireNode {
+  val group : Map[String, ItemGroup] = groups.filter(_.name.isDefined).map(g => (g.name.get, g)).toMap
+  
+  def complexItem(name : String) : ComplexItem = {
+    groups.find(g => g.complexItem.get(name).isDefined).map(_.complexItem(name)).get
+  }
+  
+  def simpleItem[T](name : String) : SimpleItem[T] = {
+    groups.find(g => g.simpleItems.get(name).isDefined).map(_.simpleItem[T](name)).get
+  }
+  
+  def item(name : String) : Item = {
+    groups.find(g => g.item.get(name).isDefined).map(_.item(name)).get
+  }
+}
 
 case class Questionnaire(name: Option[String] = None, parts: Seq[Part], randomized: Boolean = false) extends QuestionnaireNode {
+  //TODO: find a better way to access the parents
+  /**
+   * A map listing the parents of the questionnaire nodes of this questionnaire
+   */
   val parent: Map[QuestionnaireNode, QuestionnaireNode] = (parts.flatMap { p =>
     p.groups.map(g => (g, p)) :+ (p, this)
   }).toMap
-
+  
+  val part : Map[String, Part] = parts.filter(_.name.isDefined).map(p => (p.name.get, p)).toMap
 }
 
 object Questionnaire {
