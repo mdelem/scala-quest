@@ -29,7 +29,7 @@ class QuestionnaireSpec extends FlatSpec with Matchers {
   }
   "An Item" should "is either a simple item or a complex item" in {
     q.part("p1").simpleItem("i3") shouldBe an[SimpleItem[_]]
-    q.part("p1").complexItem("ci1") shouldBe an[ComplexItem]
+    q.part("p1").item("ci1") shouldBe an[ComplexItem]
   }
   "A Complex Item" should "contains simple items" in {
     q.part("p1").complexItem("ci1").item("i5") shouldBe an[SimpleItem[_]]
