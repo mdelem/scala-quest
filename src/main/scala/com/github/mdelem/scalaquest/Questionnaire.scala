@@ -9,34 +9,39 @@ trait QuestionnaireNode
 case class SimpleItem[T](name: Option[String] = None, proposition: String) extends Item
 
 case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false) extends Item {
-  private val itemMap : Map[String, SimpleItem[_]] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
-  def item[T] : Map[String, SimpleItem[T]] = itemMap.asInstanceOf[Map[String, SimpleItem[T]]]
+  private val itemMap: Map[String, SimpleItem[_]] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
+  def item[T]: Map[String, SimpleItem[T]] = itemMap.asInstanceOf[Map[String, SimpleItem[T]]]
 }
 
 case class ItemGroup(name: Option[String] = None, items: Seq[Item], randomized: Boolean = false) extends QuestionnaireNode {
-  val item : Map[String, Item] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
-  private val simpleItemMap : Map[String, SimpleItem[_]] = items.filter(i => i.name.isDefined && i.isInstanceOf[SimpleItem[_]]).map(i => (i.name.get, i.asInstanceOf[SimpleItem[_]])).toMap
-  def simpleItem[T] : Map[String, SimpleItem[T]] = simpleItemMap.asInstanceOf[Map[String, SimpleItem[T]]]
-  val complexItem : Map[String, ComplexItem] = items.filter(i => i.name.isDefined && i.isInstanceOf[ComplexItem]).map(i => (i.name.get, i.asInstanceOf[ComplexItem])).toMap
+  private val itemMap: Map[String, Item] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
+  private val simpleItemMap: Map[String, SimpleItem[_]] = items.filter(i => i.name.isDefined && i.isInstanceOf[SimpleItem[_]]).map(i => (i.name.get, i.asInstanceOf[SimpleItem[_]])).toMap
+  def simpleItem[T]: Map[String, SimpleItem[T]] =
+    (simpleItemMap ++ complexItem.values.flatMap(ci => ci.item)).asInstanceOf[Map[String, SimpleItem[T]]]
+  val complexItem: Map[String, ComplexItem] = items.filter(i => i.name.isDefined && i.isInstanceOf[ComplexItem]).map(i => (i.name.get, i.asInstanceOf[ComplexItem])).toMap
+  val item = simpleItemMap ++ complexItem ++ complexItem.values.flatMap(ci => ci.item)
 }
 
 case class Part(name: Option[String] = None, groups: Seq[ItemGroup], randomized: Boolean = false) extends QuestionnaireNode {
-  val group : Map[String, ItemGroup] = groups.filter(_.name.isDefined).map(g => (g.name.get, g)).toMap
-  def complexItem : Map[String,ComplexItem] = groups.flatMap(_.complexItem).toMap
-  def simpleItem[T] : Map[String,SimpleItem[T]] = groups.flatMap(_.simpleItem).toMap.asInstanceOf[Map[String, SimpleItem[T]]]
-  def item : Map[String,Item] = groups.flatMap(_.item).toMap
+  val group: Map[String, ItemGroup] = groups.filter(_.name.isDefined).map(g => (g.name.get, g)).toMap
+  def complexItem: Map[String, ComplexItem] = groups.flatMap(_.complexItem).toMap
+  def simpleItem[T]: Map[String, SimpleItem[T]] = groups.flatMap(_.simpleItem).toMap.asInstanceOf[Map[String, SimpleItem[T]]]
+  def item: Map[String, Item] = groups.flatMap(_.item).toMap
 }
 
 case class Questionnaire(name: Option[String] = None, parts: Seq[Part], randomized: Boolean = false) extends QuestionnaireNode {
-  //TODO: find a better way to access the parents
+  val part: Map[String, Part] = parts.filter(_.name.isDefined).map(p => (p.name.get, p)).toMap
+  val group: Map[String, ItemGroup] = parts.flatMap(_.group).toMap
+  def complexItem: Map[String, ComplexItem] = parts.flatMap(_.complexItem).toMap
+  def simpleItem[T]: Map[String, SimpleItem[T]] = parts.flatMap(_.simpleItem).toMap.asInstanceOf[Map[String, SimpleItem[T]]]
+  def item: Map[String, Item] = parts.flatMap(_.item).toMap
+
   /**
    * A map listing the parents of the questionnaire nodes of this questionnaire
    */
   val parent: Map[QuestionnaireNode, QuestionnaireNode] = (parts.flatMap { p =>
     p.groups.map(g => (g, p)) :+ (p, this)
   }).toMap
-  
-  val part : Map[String, Part] = parts.filter(_.name.isDefined).map(p => (p.name.get, p)).toMap
 }
 
 object Questionnaire {
@@ -84,30 +89,30 @@ object Implicits {
 
   implicit def itemAsSeq(i: Item) = Seq(i)
   implicit def simpleItemAsSeq[T](i: SimpleItem[T]) = Seq(i)
-  implicit def itemToItemGroup(i: Item) = ItemGroup(Seq(i))
-  implicit def itemToSeqItemGroup(i: Item) = Seq(ItemGroup(Seq(i)))
+  implicit def itemToItemGroup(i: Item) = ItemGroup(i.name, Seq(i))
+  implicit def itemToSeqItemGroup(i: Item) = Seq(ItemGroup(i.name, Seq(i)))
 
   implicit class ItemAsSeq(i: Item) {
     def ~(next: Item): Seq[Item] = Seq(i, next)
   }
   implicit class ItemSeq(i: Seq[Item]) {
     def ~(next: Item): Seq[Item] = i :+ next
-    def ~(next: ItemGroup): Seq[ItemGroup] = i.map(j => ItemGroup(Seq(j))) :+ next
+    def ~(next: ItemGroup): Seq[ItemGroup] = i.map(j => ItemGroup(j.name, Seq(j))) :+ next
   }
 
   implicit class SimpleItemAsSeq[T](i: SimpleItem[T]) {
     def ~[U](next: SimpleItem[U]): Seq[SimpleItem[_]] = Seq(i, next)
-    def ~(next: ItemGroup): Seq[ItemGroup] = Seq(ItemGroup(Seq(i)), next)
+    def ~(next: ItemGroup): Seq[ItemGroup] = Seq(ItemGroup(i.name, Seq(i)), next)
     def ~(next: ComplexItem): Seq[Item] = Seq(i, next)
   }
   implicit class SimpleItemSeq(i: Seq[SimpleItem[_]]) {
     def ~[U](next: SimpleItem[U]): Seq[SimpleItem[_]] = i :+ next
-    def ~(next: ItemGroup): Seq[ItemGroup] = i.map(j => ItemGroup(Seq(j))) :+ next
+    def ~(next: ItemGroup): Seq[ItemGroup] = i.map(j => ItemGroup(j.name, Seq(j))) :+ next
     def ~(next: ComplexItem): Seq[Item] = i :+ next
   }
 
   implicit class ComplexItemAsSeq(i: ComplexItem) {
-    def ~(next: ItemGroup): Seq[ItemGroup] = Seq(ItemGroup(Seq(i)), next)
+    def ~(next: ItemGroup): Seq[ItemGroup] = Seq(ItemGroup(i.name, Seq(i)), next)
     def ~(next: Item): Seq[Item] = Seq(i, next)
   }
 }

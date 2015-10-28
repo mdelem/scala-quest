@@ -9,26 +9,26 @@ class ActionsFiltersAndMethodsSpec extends FlatSpec with Matchers {
     name = "q1",
     Part(
       name = "p1",
-      ItemGroup(
-        SimpleItem[Int]("d1", "Age") ~
-          SimpleItem[String]("d2", "Gender")) ~
-        SimpleItem[Int](name = "likeChocolate", "I like chocolate") ~
-        SimpleItem[Int](name = "likeVanilla", "I like vanilla") ~
-        ComplexItem(
-          SimpleItem[Boolean]("I prefer chocolate") ~
-            SimpleItem[Boolean]("I prefer vanilla"))) ~
+      ItemGroup(name = "ig1",
+        SimpleItem[Int]("i1", "Age") ~
+          SimpleItem[String]("i2", "Gender")) ~
+        SimpleItem[Int]("i3", "I like chocolate") ~
+        SimpleItem[Int]("i4", "I like vanilla") ~
+        ComplexItem("ci1",
+          SimpleItem[Boolean]("i5", "I prefer chocolate") ~
+            SimpleItem[Boolean]("i6", "I prefer vanilla"))) ~
       Part(
         name = "p2",
-        SimpleItem[Boolean]("I answered this questionnaire truthfully")))
+        SimpleItem[Boolean]("i7","I answered this questionnaire truthfully")))
 
   val defaultActions = Actions(q)
 
   "The default get'" should "return a response containing the same questionnaire node of the request" in {
-    defaultActions.service(Request(q.parts.head.groups.head)) should be(Response(Some(q.parts.head.groups.head)))
+    defaultActions.service(Request(q.group("ig1"))) should be(Response(Some(q.group("ig1"))))
   }
   "The default post'" should "step in the questionnaire" in {
-    val request = Request(q.parts.head.groups.head,
-      Map(q.parts.head.groups.head.items.head.asInstanceOf[SimpleItem[Int]] -> 40))
+    val request = Request(q.group("ig1"),
+      Map(q.simpleItem("i1") -> 40))
     defaultActions.service(request) should be(defaultActions.step(request))
   }
 
@@ -43,7 +43,7 @@ class ActionsFiltersAndMethodsSpec extends FlatSpec with Matchers {
       val response = actions.step(request)
       Response(response.node, response.parameters + ("postA" -> "true"))
     }
-    .whenIn(q.parts(0))
+    .whenIn(q.part("p1"))
     .filter { (request, actions) =>
       val response = actions.service(request)
       val mesg = response.parameters.get("mesg").getOrElse("")
@@ -57,30 +57,30 @@ class ActionsFiltersAndMethodsSpec extends FlatSpec with Matchers {
 
   "Filters'" should "be chained in order" in {
     //First part has two filters
-    filteredActions.service(Request(q.parts.head)).parameters("mesg") should be("BA")
+    filteredActions.service(Request(q.part("p1"))).parameters("mesg") should be("BA")
 
     //Second part has only the questionnaire filter
-    filteredActions.service(Request(q.parts(1))).parameters("mesg") should be("A")
+    filteredActions.service(Request(q.part("p2"))).parameters("mesg") should be("A")
   }
 
   "Gets" should "not be chained" in {
-    filteredActions.service(Request(q.parts.head)).parameters.get("getA") should be(None)
-    filteredActions.service(Request(q.parts.head)).parameters.get("getB") should be(Some("true"))
+    filteredActions.service(Request(q.part("p1"))).parameters.get("getA") should be(None)
+    filteredActions.service(Request(q.part("p1"))).parameters.get("getB") should be(Some("true"))
 
-    filteredActions.service(Request(q.parts(1))).parameters.get("getA") should be(Some("true"))
-    filteredActions.service(Request(q.parts(1))).parameters.get("getB") should be(None)
+    filteredActions.service(Request(q.part("p2"))).parameters.get("getA") should be(Some("true"))
+    filteredActions.service(Request(q.part("p2"))).parameters.get("getB") should be(None)
   }
 
   "Posts" should "not be chained" in {
-    filteredActions.service(Request(q.parts.head.groups.head,
-      Map(q.parts.head.groups.head.items.head.asInstanceOf[SimpleItem[Int]] -> 40))).parameters.get("postA") should be(None)
-    filteredActions.service(Request(q.parts.head.groups.head,
-      Map(q.parts.head.groups.head.items.head.asInstanceOf[SimpleItem[Int]] -> 40))).parameters.get("postB") should be(Some("true"))
+    filteredActions.service(Request(q.group("ig1"),
+      Map(q.simpleItem("i1") -> 40))).parameters.get("postA") should be(None)
+    filteredActions.service(Request(q.group("ig1"),
+      Map(q.simpleItem("i1") -> 40))).parameters.get("postB") should be(Some("true"))
 
-    filteredActions.service(Request(q.parts(1).groups.head,
-      Map(q.parts(1).groups.head.items.head.asInstanceOf[SimpleItem[Boolean]] -> true))).parameters.get("postA") should be(Some("true"))
-    filteredActions.service(Request(q.parts(1).groups.head,
-      Map(q.parts(1).groups.head.items.head.asInstanceOf[SimpleItem[Boolean]] -> true))).parameters.get("postB") should be(None)
+    filteredActions.service(Request(q.group("i7"),
+      Map(q.simpleItem("i7") -> true))).parameters.get("postA") should be(Some("true"))
+    filteredActions.service(Request(q.group("i7"),
+      Map(q.simpleItem("i7") -> true))).parameters.get("postB") should be(None)
 
   }
 
