@@ -9,15 +9,15 @@ trait QuestionnaireNode
 case class SimpleItem[T](name: Option[String] = None, proposition: String) extends Item
 
 case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false) extends Item {
-  private val itemMap: Map[String, SimpleItem[_]] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
-  def item[T]: Map[String, SimpleItem[T]] = itemMap.asInstanceOf[Map[String, SimpleItem[T]]]
+  val item: Map[String, SimpleItem[_]] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
+//  def item[T]: Map[String, SimpleItem[T]] = itemMap.asInstanceOf[Map[String, SimpleItem[T]]]
 }
 
 case class ItemGroup(name: Option[String] = None, items: Seq[Item], randomized: Boolean = false) extends QuestionnaireNode {
   private val itemMap: Map[String, Item] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
   private val simpleItemMap: Map[String, SimpleItem[_]] = items.filter(i => i.name.isDefined && i.isInstanceOf[SimpleItem[_]]).map(i => (i.name.get, i.asInstanceOf[SimpleItem[_]])).toMap
-  def simpleItem[T]: Map[String, SimpleItem[T]] =
-    (simpleItemMap ++ complexItem.values.flatMap(ci => ci.item)).asInstanceOf[Map[String, SimpleItem[T]]]
+  def simpleItem: Map[String, SimpleItem[_]] =
+    (simpleItemMap ++ complexItem.values.flatMap(ci => ci.item))
   val complexItem: Map[String, ComplexItem] = items.filter(i => i.name.isDefined && i.isInstanceOf[ComplexItem]).map(i => (i.name.get, i.asInstanceOf[ComplexItem])).toMap
   val item = simpleItemMap ++ complexItem ++ complexItem.values.flatMap(ci => ci.item)
 }
@@ -25,7 +25,7 @@ case class ItemGroup(name: Option[String] = None, items: Seq[Item], randomized: 
 case class Part(name: Option[String] = None, groups: Seq[ItemGroup], randomized: Boolean = false) extends QuestionnaireNode {
   val group: Map[String, ItemGroup] = groups.filter(_.name.isDefined).map(g => (g.name.get, g)).toMap
   def complexItem: Map[String, ComplexItem] = groups.flatMap(_.complexItem).toMap
-  def simpleItem[T]: Map[String, SimpleItem[T]] = groups.flatMap(_.simpleItem).toMap.asInstanceOf[Map[String, SimpleItem[T]]]
+  def simpleItem: Map[String, SimpleItem[_]] = groups.flatMap(_.simpleItem).toMap
   def item: Map[String, Item] = groups.flatMap(_.item).toMap
 }
 
@@ -33,7 +33,7 @@ case class Questionnaire(name: Option[String] = None, parts: Seq[Part], randomiz
   val part: Map[String, Part] = parts.filter(_.name.isDefined).map(p => (p.name.get, p)).toMap
   val group: Map[String, ItemGroup] = parts.flatMap(_.group).toMap
   def complexItem: Map[String, ComplexItem] = parts.flatMap(_.complexItem).toMap
-  def simpleItem[T]: Map[String, SimpleItem[T]] = parts.flatMap(_.simpleItem).toMap.asInstanceOf[Map[String, SimpleItem[T]]]
+  def simpleItem: Map[String, SimpleItem[_]] = parts.flatMap(_.simpleItem).toMap
   def item: Map[String, Item] = parts.flatMap(_.item).toMap
 
   /**
