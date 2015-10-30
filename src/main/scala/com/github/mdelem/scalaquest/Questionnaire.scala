@@ -10,7 +10,6 @@ case class SimpleItem[T](name: Option[String] = None, proposition: String) exten
 
 case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false) extends Item {
   val item: Map[String, SimpleItem[_]] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
-  //  def item[T]: Map[String, SimpleItem[T]] = itemMap.asInstanceOf[Map[String, SimpleItem[T]]]
 }
 
 case class ItemGroup(name: Option[String] = None, randomized: Boolean = false, items: Seq[Item]) extends QuestionnaireNode {

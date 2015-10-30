@@ -6,7 +6,6 @@ case class Request(node: QuestionnaireNode, answers: Map[SimpleItem[_], _] = Map
   }
 }
 object Request {
-  //  def apply(node: QuestionnaireNode): Request = new Request(node, Map())
   def apply(node: QuestionnaireNode, sessionId: String): Request = new Request(node, Map(), sessionId)
   def apply[A, B](node: QuestionnaireNode, answers: Map[SimpleItem[A], B]): Request =
     new Request(node, answers.asInstanceOf[Map[SimpleItem[_], _]])
