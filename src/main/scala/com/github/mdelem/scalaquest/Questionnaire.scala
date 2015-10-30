@@ -10,10 +10,10 @@ case class SimpleItem[T](name: Option[String] = None, proposition: String) exten
 
 case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false) extends Item {
   val item: Map[String, SimpleItem[_]] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
-//  def item[T]: Map[String, SimpleItem[T]] = itemMap.asInstanceOf[Map[String, SimpleItem[T]]]
+  //  def item[T]: Map[String, SimpleItem[T]] = itemMap.asInstanceOf[Map[String, SimpleItem[T]]]
 }
 
-case class ItemGroup(name: Option[String] = None, items: Seq[Item], randomized: Boolean = false) extends QuestionnaireNode {
+case class ItemGroup(name: Option[String] = None, randomized: Boolean = false, items: Seq[Item]) extends QuestionnaireNode {
   private val itemMap: Map[String, Item] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
   private val simpleItemMap: Map[String, SimpleItem[_]] = items.filter(i => i.name.isDefined && i.isInstanceOf[SimpleItem[_]]).map(i => (i.name.get, i.asInstanceOf[SimpleItem[_]])).toMap
   def simpleItem: Map[String, SimpleItem[_]] =
@@ -22,14 +22,14 @@ case class ItemGroup(name: Option[String] = None, items: Seq[Item], randomized: 
   val item = simpleItemMap ++ complexItem ++ complexItem.values.flatMap(ci => ci.item)
 }
 
-case class Part(name: Option[String] = None, groups: Seq[ItemGroup], randomized: Boolean = false) extends QuestionnaireNode {
+case class Part(name: Option[String] = None, randomized: Boolean = false, groups: Seq[ItemGroup]) extends QuestionnaireNode {
   val group: Map[String, ItemGroup] = groups.filter(_.name.isDefined).map(g => (g.name.get, g)).toMap
   def complexItem: Map[String, ComplexItem] = groups.flatMap(_.complexItem).toMap
   def simpleItem: Map[String, SimpleItem[_]] = groups.flatMap(_.simpleItem).toMap
   def item: Map[String, Item] = groups.flatMap(_.item).toMap
 }
 
-case class Questionnaire(name: Option[String] = None, parts: Seq[Part], randomized: Boolean = false) extends QuestionnaireNode {
+case class Questionnaire(name: Option[String] = None, randomized: Boolean = false, parts: Seq[Part]) extends QuestionnaireNode {
   val part: Map[String, Part] = parts.filter(_.name.isDefined).map(p => (p.name.get, p)).toMap
   val group: Map[String, ItemGroup] = parts.flatMap(_.group).toMap
   def complexItem: Map[String, ComplexItem] = parts.flatMap(_.complexItem).toMap
@@ -45,18 +45,22 @@ case class Questionnaire(name: Option[String] = None, parts: Seq[Part], randomiz
 }
 
 object Questionnaire {
-  def apply(parts: Seq[Part]): Questionnaire = Questionnaire(None, parts)
-  def apply(parts: Seq[Part], randomized: Boolean): Questionnaire = Questionnaire(None, parts, randomized)
+  def apply(parts: Seq[Part]): Questionnaire = Questionnaire(None, false, parts)
+  def apply(parts: Seq[Part], randomized: Boolean): Questionnaire = Questionnaire(None, randomized, parts)
+  def apply(name: Option[String], parts: Seq[Part]): Questionnaire = Questionnaire(name, false, parts)
+
 }
 
 object Part {
   def apply(groups: Seq[ItemGroup]): Part = Part(None, groups)
-  def apply(groups: Seq[ItemGroup], randomized: Boolean): Part = Part(None, groups, randomized)
+  def apply(groups: Seq[ItemGroup], randomized: Boolean): Part = Part(None, randomized, groups)
+  def apply(name: Option[String], groups: Seq[ItemGroup]): Part = Part(name, false, groups)
 }
 
 object ItemGroup {
-  def apply(items: Seq[Item]): ItemGroup = ItemGroup(None, items)
-  def apply(items: Seq[Item], randomized: Boolean): ItemGroup = ItemGroup(None, items, randomized)
+  def apply(items: Seq[Item]): ItemGroup = ItemGroup(None, false, items)
+  def apply(items: Seq[Item], randomized: Boolean): ItemGroup = ItemGroup(None, randomized, items)
+  def apply(name: Option[String], items: Seq[Item]): ItemGroup = ItemGroup(name, false, items)
 }
 
 object ComplexItem {

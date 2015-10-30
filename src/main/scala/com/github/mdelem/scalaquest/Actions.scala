@@ -1,14 +1,16 @@
 package com.github.mdelem.scalaquest
 
-case class Request(node: QuestionnaireNode, answers: Map[SimpleItem[_], _]) {
+case class Request(node: QuestionnaireNode, answers: Map[SimpleItem[_], _] = Map(), sessionId: String = "1") {
   def answer[T](i: SimpleItem[T]): T = {
     answers(i).asInstanceOf[T]
   }
 }
 object Request {
-  def apply(node: QuestionnaireNode): Request = {
-    Request(node, Map())
-  }
+  //  def apply(node: QuestionnaireNode): Request = new Request(node, Map())
+  def apply(node: QuestionnaireNode, sessionId: String): Request = new Request(node, Map(), sessionId)
+  def apply[A, B](node: QuestionnaireNode, answers: Map[SimpleItem[A], B]): Request =
+    new Request(node, answers.asInstanceOf[Map[SimpleItem[_], _]])
+
 }
 
 case class Response(node: Option[QuestionnaireNode], parameters: Map[String, String])
@@ -83,38 +85,49 @@ class Actions(q: Questionnaire, n: QuestionnaireNode, filters: Map[Questionnaire
   }
 
   def step(r: Request): Response = {
-    //TODO: handle randomization
     r.node match {
-      case q: Questionnaire => Response(q.parts.headOption)
+      case q: Questionnaire => Response(inOrder(q.parts, q.randomized, r.sessionId).headOption)
       case p: Part =>
-        val g = p.groups.headOption
+        val g = inOrder(p.groups, p.randomized, r.sessionId).headOption
         if (g.isDefined)
           Response(g)
         else
-          Response(getNextPart(p))
+          Response(getNextPart(p, r))
       case g: ItemGroup =>
-        val next = getNextItemGroup(g)
+        val next = getNextItemGroup(g, r)
         if (next.isDefined)
           Response(next)
         else
-          Response(getNextPart(q.parent(g).asInstanceOf[Part]))
+          Response(getNextPart(q.parent(g).asInstanceOf[Part], r))
 
     }
   }
 
-  private def getNextPart(previous: Part): Option[Part] = {
-    val nextIndex = q.parts.indexOf(previous) + 1
-    if (q.parts.isDefinedAt(nextIndex))
-      Some(q.parts(nextIndex))
+  private def getNextPart(previous: Part, r: Request): Option[Part] = {
+    val partsInOrder = inOrder(q.parts, q.randomized, r.sessionId)
+    val nextIndex = partsInOrder.indexOf(previous) + 1
+    if (partsInOrder.isDefinedAt(nextIndex))
+      Some(partsInOrder(nextIndex))
     else None
   }
 
-  private def getNextItemGroup(previous: ItemGroup): Option[ItemGroup] = {
+  private def getNextItemGroup(previous: ItemGroup, r: Request): Option[ItemGroup] = {
     val p = q.parent(previous).asInstanceOf[Part]
-    val nextIndex = p.groups.indexOf(previous) + 1
-    if (p.groups.isDefinedAt(nextIndex))
-      Some(p.groups(nextIndex))
+    val groupsInOrder = inOrder(p.groups, q.randomized, r.sessionId)
+    val nextIndex = groupsInOrder.indexOf(previous) + 1
+    if (groupsInOrder.isDefinedAt(nextIndex))
+      Some(groupsInOrder(nextIndex))
     else None
+  }
+
+  private def inOrder[T](s: Seq[T], randomized: Boolean, seed: String): Seq[T] = {
+    if (randomized) {
+      val r = util.Random
+      r.setSeed(seed.hashCode())
+      r.shuffle(s)
+    } else {
+      s
+    }
   }
 
   def jumpTo(node: QuestionnaireNode): Response = {
