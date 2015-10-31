@@ -1,15 +1,20 @@
 package com.github.mdelem.scalaquest
 
-case class Request(node: QuestionnaireNode, answers: Map[SimpleItem[_], _] = Map(), sessionId: String = "1") {
-  def answer[T](i: SimpleItem[T]): T = {
-    answers(i).asInstanceOf[T]
+import com.github.mdelem.scalaquest.Validator.Validates
+
+case class Answer[T](item: SimpleItem[T], value: T)
+
+case class Request(node: QuestionnaireNode, answers: Seq[Answer[_]] = Seq(), sessionId: String = "1") {
+  def answer[T](i: SimpleItem[_])(implicit v: Validates[T]): Option[T] = {
+    answers.find(_.item == i).map(a => v.validate(a.value))
   }
 }
 object Request {
-  def apply(node: QuestionnaireNode, sessionId: String): Request = new Request(node, Map(), sessionId)
-  def apply[A, B](node: QuestionnaireNode, answers: Map[SimpleItem[A], B]): Request =
-    new Request(node, answers.asInstanceOf[Map[SimpleItem[_], _]])
-
+  def apply(node: QuestionnaireNode, sessionId: String): Request = new Request(node, Seq(), sessionId)
+  def apply(node: QuestionnaireNode, answers: Seq[Answer[_]]): Request =
+    new Request(node, answers)
+  def apply(node: QuestionnaireNode, answer: Answer[_]): Request =
+    new Request(node, Seq(answer))
 }
 
 case class Response(node: Option[QuestionnaireNode], parameters: Map[String, String])
@@ -97,7 +102,7 @@ class Actions(q: Questionnaire, n: QuestionnaireNode, filters: Map[Questionnaire
         if (next.isDefined)
           Response(next)
         else
-          Response(getNextPart(q.parent(g).asInstanceOf[Part], r))
+          Response(getNextPart(q.parent(g), r))
 
     }
   }
@@ -111,7 +116,7 @@ class Actions(q: Questionnaire, n: QuestionnaireNode, filters: Map[Questionnaire
   }
 
   private def getNextItemGroup(previous: ItemGroup, r: Request): Option[ItemGroup] = {
-    val p = q.parent(previous).asInstanceOf[Part]
+    val p : Part = q.parent(previous)
     val groupsInOrder = inOrder(p.groups, q.randomized, r.sessionId)
     val nextIndex = groupsInOrder.indexOf(previous) + 1
     if (groupsInOrder.isDefinedAt(nextIndex))

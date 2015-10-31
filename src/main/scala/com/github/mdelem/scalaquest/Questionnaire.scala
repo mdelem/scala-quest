@@ -6,7 +6,7 @@ trait Item {
 
 trait QuestionnaireNode
 
-case class SimpleItem[T](name: Option[String] = None, proposition: String) extends Item
+case class SimpleItem[+T](name: Option[String] = None, proposition: String) extends Item
 
 case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false) extends Item {
   val item: Map[String, SimpleItem[_]] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
@@ -14,10 +14,16 @@ case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], r
 
 case class ItemGroup(name: Option[String] = None, randomized: Boolean = false, items: Seq[Item]) extends QuestionnaireNode {
   private val itemMap: Map[String, Item] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
-  private val simpleItemMap: Map[String, SimpleItem[_]] = items.filter(i => i.name.isDefined && i.isInstanceOf[SimpleItem[_]]).map(i => (i.name.get, i.asInstanceOf[SimpleItem[_]])).toMap
+  private val simpleItemMap: Map[String, SimpleItem[_]] = items.flatMap {
+    case i @ SimpleItem(Some(name), _) => Some((name, i))
+    case _                             => None
+  }.toMap
   def simpleItem: Map[String, SimpleItem[_]] =
     (simpleItemMap ++ complexItem.values.flatMap(ci => ci.item))
-  val complexItem: Map[String, ComplexItem] = items.filter(i => i.name.isDefined && i.isInstanceOf[ComplexItem]).map(i => (i.name.get, i.asInstanceOf[ComplexItem])).toMap
+  val complexItem: Map[String, ComplexItem] = items.flatMap {
+    case i @ ComplexItem(Some(name), _, _) => Some((name, i))
+    case _                                 => None
+  }.toMap
   val item = simpleItemMap ++ complexItem ++ complexItem.values.flatMap(ci => ci.item)
 }
 
@@ -35,12 +41,18 @@ case class Questionnaire(name: Option[String] = None, randomized: Boolean = fals
   def simpleItem: Map[String, SimpleItem[_]] = parts.flatMap(_.simpleItem).toMap
   def item: Map[String, Item] = parts.flatMap(_.item).toMap
 
-  /**
-   * A map listing the parents of the questionnaire nodes of this questionnaire
-   */
-  val parent: Map[QuestionnaireNode, QuestionnaireNode] = (parts.flatMap { p =>
-    p.groups.map(g => (g, p)) :+ (p, this)
+  private val itemGroupParentMap: Map[ItemGroup, Part] = (parts.flatMap { p =>
+    p.groups.map(g => (g, p))
   }).toMap
+
+  def parent(n: ItemGroup): Part = {
+    itemGroupParentMap(n)
+  }
+  
+  def parent(n: Part): Questionnaire = {
+    this
+  }
+  
 }
 
 object Questionnaire {
