@@ -23,7 +23,8 @@ class ValidatorSpec extends FlatSpec with Matchers {
 
   val r = Request(q.group("ig1"), Answer(q.simpleItem("i3"), 30))
   "The default get'" should "return a response containing the same questionnaire node of the request" in {
-    val value = r.answer[Int](q.simpleItem("i3")).get
+    //TODO: could I make this typesafe (and pretty) using macros?
+    val value = r.answer(q.simpleItem("i3").asInstanceOf[SimpleItem[Int]]).get
     value shouldBe(30)
   }
 

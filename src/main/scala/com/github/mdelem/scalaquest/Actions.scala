@@ -5,7 +5,7 @@ import com.github.mdelem.scalaquest.Validator.Validates
 case class Answer[T](item: SimpleItem[T], value: T)
 
 case class Request(node: QuestionnaireNode, answers: Seq[Answer[_]] = Seq(), sessionId: String = "1") {
-  def answer[T](i: SimpleItem[_])(implicit v: Validates[T]): Option[T] = {
+  def answer[T](i: SimpleItem[T])(implicit v: Validates[T]): Option[T] = {
     answers.find(_.item == i).map(a => v.validate(a.item.asInstanceOf[SimpleItem[T]], a.value.asInstanceOf[T]))
   }
 }
