@@ -6,7 +6,7 @@ trait Item {
 
 trait QuestionnaireNode
 
-case class SimpleItem[+T](name: Option[String] = None, proposition: String) extends Item
+case class SimpleItem[+T](name: Option[String] = None, proposition: String, acceptedValues : Seq[T] = Seq()) extends Item
 
 case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false) extends Item {
   val item: Map[String, SimpleItem[_]] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
@@ -15,7 +15,7 @@ case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], r
 case class ItemGroup(name: Option[String] = None, randomized: Boolean = false, items: Seq[Item]) extends QuestionnaireNode {
   private val itemMap: Map[String, Item] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
   private val simpleItemMap: Map[String, SimpleItem[_]] = items.flatMap {
-    case i @ SimpleItem(Some(name), _) => Some((name, i))
+    case i @ SimpleItem(Some(name), _, _) => Some((name, i))
     case _                             => None
   }.toMap
   def simpleItem: Map[String, SimpleItem[_]] =
