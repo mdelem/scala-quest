@@ -15,12 +15,14 @@ object WithAccessorsMacro {
     import c.universe._
 
     val inputAsTree = annottees.head.tree
+//    println(showRaw(inputAsTree))
+//    wrap(c)(inputAsTree)
+
     inputAsTree match {
-      case input @ ValDef(_, _, _, Apply(Ident(TermName("Questionnaire")), _)) =>
+      case input @ ValDef(modifiers, name, _, a @ Apply(Ident(TermName("Questionnaire")), _)) =>
         val wrapperName = s"Questionnaire${input.name.encodedName.toString.capitalize}WithAccessors"
 
-        val wrappedCode = ValDef(Modifiers(), input.name, Ident(TypeName(wrapperName)),
-          input.children(1))
+        val wrappedCode = ValDef(modifiers, name, Ident(TypeName(wrapperName)), a)
 
         val accessors = findPartNames(c)(input)
           .map(partName => s"""def _$partName = this.part("$partName")""")
@@ -50,13 +52,48 @@ object WithAccessorsMacro {
   def findPartNames(c: Context)(t: c.Tree): Seq[String] = {
     import c.universe._
 
-    val maybePartName = t match {
+    t match {
       case Apply(Ident(TermName("Part")), (AssignOrNamedArg(Ident(TermName("name")),
-        Literal(Constant(partName: String))) :: _)) => Some(partName)
-      case _ => None
+        Literal(Constant(partName: String))) :: _)) => 
+          partName +: t.children.flatMap(findPartNames(c)(_))
+      case _ => 
+        t.children.flatMap(findPartNames(c)(_))
     }
-
-    (maybePartName ++ t.children.flatMap(findPartNames(c)(_))).toSeq
   }
+
+  
+//  private def wrap(c: Context)(t: c.Tree): Tree = {
+//    import c.universe._
+//
+//    t match {
+//      case ValDef(modifiers, valName, _, a @ Apply(Ident(TermName("Questionnaire")), children @ (AssignOrNamedArg(Ident(TermName("name")),
+//        Literal(Constant(name: String))) :: _))) =>
+//        println("In questionnaire: " + name)
+//        children.foreach(wrap(c)(_))
+//        println("--- end questionnaire")
+//      case Apply(Ident(TermName("Part")), children @ (AssignOrNamedArg(Ident(TermName("name")),
+//        Literal(Constant(name: String))) :: _)) =>
+//        println("In part: " + name)
+//        children.foreach(wrap(c)(_))
+//        println("--- end part")
+//      case Apply(Ident(TermName("ItemGroup")), children @ (AssignOrNamedArg(Ident(TermName("name")),
+//        Literal(Constant(name: String))) :: _)) =>
+//        println("In item group: " + name)
+//        children.foreach(wrap(c)(_))
+//        println("--- end group")
+//      case Apply(Ident(TermName("ComplexItem")),
+//        children @ Literal(Constant(name: String)) :: _) =>
+//        println("In complex item: " + name)
+//        children.foreach(wrap(c)(_))
+//        println("--- end complex item")
+//      case Apply(TypeApply(Ident(TermName("SimpleItem")),
+//        List(Ident(TypeName(_type: String)))), children @ Literal(Constant(name: String)) :: _) =>
+//        println("Simple item: " + (_type, name))
+//      case t =>
+//        //TODO: need to use a Transformer instead of pattern matching
+//        t.children.foreach(listElements(c)(_))
+//    }
+//
+//  }
 
 }
