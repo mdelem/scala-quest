@@ -15,33 +15,14 @@ object WithAccessorsMacro {
     import c.universe._
 
     val inputAsTree = annottees.head.tree
-//    println(showRaw(inputAsTree))
-//    wrap(c)(inputAsTree)
-
     inputAsTree match {
       case input @ ValDef(modifiers, name, _, a @ Apply(Ident(TermName("Questionnaire")), _)) =>
-        val wrapperName = s"Questionnaire${input.name.encodedName.toString.capitalize}WithAccessors"
-
-        val wrappedCode = ValDef(modifiers, name, Ident(TypeName(wrapperName)), a)
-
-        val accessors = findPartNames(c)(input)
-          .map(partName => s"""def _$partName = this.part("$partName")""")
-          .mkString("\n")
-        val wrapperDef = c.parse(
-          s"""
-      class $wrapperName(name: Option[String] = None, randomized: Boolean = false, parts: Seq[Part])
-          extends Questionnaire(name, randomized, parts) {
-        $accessors
-      }
-      object $wrapperName {
-        implicit def to$wrapperName(q: Questionnaire): $wrapperName = {
-          new $wrapperName(q.name, q.randomized, q.parts)
-        }
-      }
-      import $wrapperName._
-      """)
-
-        val output = Block(wrapperDef.children :+ wrappedCode, Literal(Constant(())))
+        val (Some(wrapperName), wrapperCode) = createWrapper(c)(input)
+        val valDef = ValDef(modifiers, name, Ident(TypeName(wrapperName)), a)
+        val wrapperDefs = c.parse(wrapperCode)
+        
+        val output = Block(wrapperDefs.children :+ valDef, Literal(Constant(())))
+//        println(showCode(output))
         c.Expr[Any](output)
       case _ =>
         c.abort(c.enclosingPosition, "Annotation can only be applied to Questionnaire declarations")
@@ -54,46 +35,135 @@ object WithAccessorsMacro {
 
     t match {
       case Apply(Ident(TermName("Part")), (AssignOrNamedArg(Ident(TermName("name")),
-        Literal(Constant(partName: String))) :: _)) => 
-          partName +: t.children.flatMap(findPartNames(c)(_))
-      case _ => 
+        Literal(Constant(partName: String))) :: _)) =>
+        partName +: t.children.flatMap(findPartNames(c)(_))
+      case _ =>
         t.children.flatMap(findPartNames(c)(_))
     }
   }
 
-  
-//  private def wrap(c: Context)(t: c.Tree): Tree = {
-//    import c.universe._
-//
-//    t match {
-//      case ValDef(modifiers, valName, _, a @ Apply(Ident(TermName("Questionnaire")), children @ (AssignOrNamedArg(Ident(TermName("name")),
-//        Literal(Constant(name: String))) :: _))) =>
-//        println("In questionnaire: " + name)
-//        children.foreach(wrap(c)(_))
-//        println("--- end questionnaire")
-//      case Apply(Ident(TermName("Part")), children @ (AssignOrNamedArg(Ident(TermName("name")),
-//        Literal(Constant(name: String))) :: _)) =>
-//        println("In part: " + name)
-//        children.foreach(wrap(c)(_))
-//        println("--- end part")
-//      case Apply(Ident(TermName("ItemGroup")), children @ (AssignOrNamedArg(Ident(TermName("name")),
-//        Literal(Constant(name: String))) :: _)) =>
-//        println("In item group: " + name)
-//        children.foreach(wrap(c)(_))
-//        println("--- end group")
-//      case Apply(Ident(TermName("ComplexItem")),
-//        children @ Literal(Constant(name: String)) :: _) =>
-//        println("In complex item: " + name)
-//        children.foreach(wrap(c)(_))
-//        println("--- end complex item")
-//      case Apply(TypeApply(Ident(TermName("SimpleItem")),
-//        List(Ident(TypeName(_type: String)))), children @ Literal(Constant(name: String)) :: _) =>
-//        println("Simple item: " + (_type, name))
-//      case t =>
-//        //TODO: need to use a Transformer instead of pattern matching
-//        t.children.foreach(listElements(c)(_))
-//    }
-//
-//  }
+  private def createWrapper(c: Context)(t: c.Tree): (Option[String], String) = {
+    import c.universe._
+
+    t match {
+      case Apply(Ident(TermName("Questionnaire")), children @ (AssignOrNamedArg(Ident(TermName("name")),
+        Literal(Constant(name: String))) :: _)) =>
+        println("In questionnaire: " + name)
+        createQuestionnaireWrapper(c)(name, children)
+      case Apply(Ident(TermName("Questionnaire")), children @ (Literal(Constant(name: String)) :: _)) =>
+        println("In questionnaire: " + name)
+        createQuestionnaireWrapper(c)(name, children)
+      case Apply(Ident(TermName("Part")), children @ (AssignOrNamedArg(Ident(TermName("name")),
+        Literal(Constant(name: String))) :: _)) =>
+        println("In part: " + name)
+        createPartWrapper(c)(name, children)
+      case Apply(Ident(TermName("Part")), children @ (Literal(Constant(name: String)) :: _)) =>
+        println("In part: " + name)
+        createPartWrapper(c)(name, children)
+      case Apply(Ident(TermName("ItemGroup")), children @ (AssignOrNamedArg(Ident(TermName("name")),
+        Literal(Constant(name: String))) :: _)) =>
+        println("In item group: " + name)
+        createItemGroupWrapper(c)(name, children)
+      case Apply(Ident(TermName("ItemGroup")), children @ (Literal(Constant(name: String)) :: _)) =>
+        println("In item group: " + name)
+        createItemGroupWrapper(c)(name, children)
+      case Apply(Ident(TermName("ComplexItem")),
+        children @ (AssignOrNamedArg(Ident(TermName("name")), Literal(Constant(name: String))) :: _)) =>
+        println("In complex item: " + name)
+        createComplexItemWrapper(c)(name, children)
+      case Apply(Ident(TermName("ComplexItem")),
+        children @ (Literal(Constant(name: String)) :: _)) =>
+        println("In complex item: " + name)
+        createComplexItemWrapper(c)(name, children)
+      case Apply(TypeApply(Ident(TermName("SimpleItem")), List(Ident(TypeName(_type: String)))),
+        children @ (AssignOrNamedArg(Ident(TermName("name")), Literal(Constant(name: String))) :: _)) =>
+        println("Simple item: " + (_type, name))
+        createSimpleItemWrapper(c)(name, _type)
+      case Apply(TypeApply(Ident(TermName("SimpleItem")), List(Ident(TypeName(_type: String)))),
+        children @ (Literal(Constant(name: String)) :: _)) =>
+        println("Simple item: " + (_type, name))
+        createSimpleItemWrapper(c)(name, _type)
+      case t =>
+        val childrenWrappers = t.children.map(createWrapper(c)(_))
+        val wrapperName = childrenWrappers.collectFirst {
+          case w @ (Some(wrapperName), _) => wrapperName
+        }
+        (wrapperName, childrenWrappers.map(_._2).mkString("\n"))
+    }
+
+  }
+
+  def createSimpleItemWrapper(c: Context)(name: String, _type: String): (Option[String], String) = {
+    import c.universe._
+    val encoded = TermName(name).toString
+    (None, s"""def _$encoded : SimpleItem[${_type}] = item("$name").asInstanceOf[SimpleItem[${_type}]]""")
+  }
+
+  def createComplexItemWrapper(c: Context)(name: String, children: List[c.Tree]): (Option[String], String) = {
+    import c.universe._
+    val encoded = TermName(name).toString
+    val wrapperName = s"ComplexItem${encoded.capitalize}Wrapped"
+    val body = children.map(createWrapper(c)(_)._2).mkString("\n")
+
+    (Some(wrapperName), s"""class $wrapperName(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false)
+      extends ComplexItem(name, items, randomized) {
+      $body
+    }
+    implicit def to$wrapperName(ci: ComplexItem): $wrapperName = {
+      new $wrapperName(ci.name, ci.items, ci.randomized)
+    }
+    def _$encoded : $wrapperName = complexItem("$name")
+    """)
+  }
+
+  def createItemGroupWrapper(c: Context)(name: String, children: List[c.Tree]): (Option[String], String) = {
+    import c.universe._
+    val encoded = TermName(name).toString
+    val wrapperName = s"ItemGroup${encoded.capitalize}Wrapped"
+    val body = children.map(createWrapper(c)(_)._2).mkString("\n")
+
+    (Some(wrapperName), s"""class $wrapperName(name: Option[String] = None, randomized: Boolean = false,  items: Seq[Item])
+      extends ItemGroup(name, randomized, items) {
+      $body
+    }
+    implicit def to$wrapperName(ig: ItemGroup): $wrapperName = {
+      new $wrapperName(ig.name, ig.randomized, ig.items)
+    }
+    def _$encoded : $wrapperName = group("$name")
+    """)
+  }
+
+  def createPartWrapper(c: Context)(name: String, children: List[c.Tree]): (Option[String], String) = {
+    import c.universe._
+    val encoded = TermName(name).toString
+    val wrapperName = s"Part${encoded.capitalize}Wrapped"
+    val body = children.map(createWrapper(c)(_)._2).mkString("\n")
+
+    (Some(wrapperName), s"""class $wrapperName(name: Option[String] = None, randomized: Boolean = false, groups: Seq[ItemGroup])
+      extends Part(name, randomized, groups) {
+      $body
+    }
+    implicit def to$wrapperName(p: Part): $wrapperName = {
+      new $wrapperName(p.name, p.randomized, p.groups)
+    }
+    def _$encoded : $wrapperName = part("$name")
+    """)
+  }
+
+  def createQuestionnaireWrapper(c: Context)(name: String, children: List[c.Tree]): (Option[String], String) = {
+    import c.universe._
+    val encoded = TermName(name).toString
+    val wrapperName = s"Questionnaire${encoded.capitalize}Wrapped"
+    val body = children.map(createWrapper(c)(_)._2).mkString("\n")
+
+    (Some(wrapperName), s"""class $wrapperName(name: Option[String] = None, randomized: Boolean = false, parts: Seq[Part])
+          extends Questionnaire(name, randomized, parts) {
+      $body
+    }
+    implicit def to$wrapperName(q: Questionnaire): $wrapperName = {
+      new $wrapperName(q.name, q.randomized, q.parts)
+    }
+    """)
+  }
 
 }

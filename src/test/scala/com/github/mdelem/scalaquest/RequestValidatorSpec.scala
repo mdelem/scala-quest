@@ -3,11 +3,11 @@ package com.github.mdelem.scalaquest
 import org.scalatest._
 import com.github.mdelem.scalaquest.Implicits._
 
-class ValidatorSpec extends FlatSpec with Matchers {
+class RequestValidatorSpec extends FlatSpec with Matchers {
 
   @WithAccessors
   val q = Questionnaire(
-    name = "q1",
+    "q1",
     Part(
       name = "p1",
       ItemGroup(name = "ig1",
@@ -22,12 +22,11 @@ class ValidatorSpec extends FlatSpec with Matchers {
         name = "p2",
         SimpleItem[Boolean]("i7", "I answered this questionnaire truthfully")))
 
-  val r = Request(q._p1.group("ig1"), Answer(q.simpleItem("i3"), 30))
-  "The default get'" should "return a response containing the same questionnaire node of the request" in {
-    //TODO: could I make this typesafe (and pretty) using macros?
-    val value = r.answer(q.simpleItem("i3").asInstanceOf[SimpleItem[Int]]).get
-    value shouldBe (30)
+  val r = Request(q._p1.group("i3"), Answer(q._p1._i3, 30))
+  "Getting the answer for an item'" should "return its value" in {
+    r.answer(q._p1._i3).get shouldBe (30)
   }
   
-  
+  //TODO: other validation tests
+
 }
