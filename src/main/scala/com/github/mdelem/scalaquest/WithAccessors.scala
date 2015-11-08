@@ -95,12 +95,12 @@ object WithAccessorsMacro {
     val wrapperName = s"ComplexItem${encoded.capitalize}Wrapped"
     val body = children.map(createWrapper(c)(_)._2).mkString("\n")
 
-    (Some(wrapperName), s"""class $wrapperName(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false)
-      extends ComplexItem(name, items, randomized) {
+    (Some(wrapperName), s"""class $wrapperName(name: Option[String] = None, randomized: Boolean = false, items: Seq[SimpleItem[_]])
+      extends ComplexItem(name, randomized, items) {
       $body
     }
     implicit def to$wrapperName(ci: ComplexItem): $wrapperName = {
-      new $wrapperName(ci.name, ci.items, ci.randomized)
+      new $wrapperName(ci.name, ci.randomized, ci.items)
     }
     def _$encoded : $wrapperName = complexItem("$name")
     """)

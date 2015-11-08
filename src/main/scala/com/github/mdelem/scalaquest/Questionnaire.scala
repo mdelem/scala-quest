@@ -6,9 +6,9 @@ trait Item {
 
 trait QuestionnaireNode
 
-case class SimpleItem[+T](name: Option[String] = None, proposition: String, acceptedValues : Seq[T] = Seq()) extends Item
+case class SimpleItem[+T](name: Option[String] = None, proposition: String, acceptedValues: Seq[T] = Seq()) extends Item
 
-case class ComplexItem(name: Option[String] = None, items: Seq[SimpleItem[_]], randomized: Boolean = false) extends Item {
+case class ComplexItem(name: Option[String] = None, randomized: Boolean = false, items: Seq[SimpleItem[_]]) extends Item {
   val item: Map[String, SimpleItem[_]] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
 }
 
@@ -16,7 +16,7 @@ case class ItemGroup(name: Option[String] = None, randomized: Boolean = false, i
   private val itemMap: Map[String, Item] = items.filter(_.name.isDefined).map(i => (i.name.get, i)).toMap
   private val simpleItemMap: Map[String, SimpleItem[_]] = items.flatMap {
     case i @ SimpleItem(Some(name), _, _) => Some((name, i))
-    case _                             => None
+    case _                                => None
   }.toMap
   def simpleItem: Map[String, SimpleItem[_]] =
     (simpleItemMap ++ complexItem.values.flatMap(ci => ci.item))
@@ -48,35 +48,37 @@ case class Questionnaire(name: Option[String] = None, randomized: Boolean = fals
   def parent(n: ItemGroup): Part = {
     itemGroupParentMap(n)
   }
-  
+
   def parent(n: Part): Questionnaire = {
     this
   }
-  
+
 }
 
 object Questionnaire {
   def apply(parts: Seq[Part]): Questionnaire = Questionnaire(None, false, parts)
-  def apply(parts: Seq[Part], randomized: Boolean): Questionnaire = Questionnaire(None, randomized, parts)
+  def apply(randomized: Boolean, parts: Seq[Part]): Questionnaire = Questionnaire(None, randomized, parts)
   def apply(name: Option[String], parts: Seq[Part]): Questionnaire = Questionnaire(name, false, parts)
 
 }
 
 object Part {
   def apply(groups: Seq[ItemGroup]): Part = Part(None, groups)
-  def apply(groups: Seq[ItemGroup], randomized: Boolean): Part = Part(None, randomized, groups)
+  def apply(randomized: Boolean, groups: Seq[ItemGroup]): Part = Part(None, randomized, groups)
   def apply(name: Option[String], groups: Seq[ItemGroup]): Part = Part(name, false, groups)
 }
 
 object ItemGroup {
   def apply(items: Seq[Item]): ItemGroup = ItemGroup(None, false, items)
-  def apply(items: Seq[Item], randomized: Boolean): ItemGroup = ItemGroup(None, randomized, items)
+  def apply(randomized: Boolean, items: Seq[Item]): ItemGroup = ItemGroup(None, randomized, items)
   def apply(name: Option[String], items: Seq[Item]): ItemGroup = ItemGroup(name, false, items)
 }
 
 object ComplexItem {
-  def apply(items: Seq[SimpleItem[_]]): ComplexItem = ComplexItem(None, items)
-  def apply(items: Seq[SimpleItem[_]], randomized: Boolean): ComplexItem = ComplexItem(None, items, randomized)
+  def apply(items: Seq[SimpleItem[_]]): ComplexItem = ComplexItem(None, false, items)
+  def apply(randomized: Boolean, items: Seq[SimpleItem[_]]): ComplexItem = ComplexItem(None, randomized, items)
+  def apply(name: Option[String], items: Seq[SimpleItem[_]]): ComplexItem = ComplexItem(name, false, items)
+
 }
 
 object SimpleItem {
