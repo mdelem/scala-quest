@@ -48,40 +48,30 @@ object WithAccessorsMacro {
     t match {
       case Apply(Ident(TermName("Questionnaire")), children @ (AssignOrNamedArg(Ident(TermName("name")),
         Literal(Constant(name: String))) :: _)) =>
-        println("In questionnaire: " + name)
         createQuestionnaireWrapper(c)(name, children)
       case Apply(Ident(TermName("Questionnaire")), children @ (Literal(Constant(name: String)) :: _)) =>
-        println("In questionnaire: " + name)
         createQuestionnaireWrapper(c)(name, children)
       case Apply(Ident(TermName("Part")), children @ (AssignOrNamedArg(Ident(TermName("name")),
         Literal(Constant(name: String))) :: _)) =>
-        println("In part: " + name)
         createPartWrapper(c)(name, children)
       case Apply(Ident(TermName("Part")), children @ (Literal(Constant(name: String)) :: _)) =>
-        println("In part: " + name)
         createPartWrapper(c)(name, children)
       case Apply(Ident(TermName("ItemGroup")), children @ (AssignOrNamedArg(Ident(TermName("name")),
         Literal(Constant(name: String))) :: _)) =>
-        println("In item group: " + name)
         createItemGroupWrapper(c)(name, children)
       case Apply(Ident(TermName("ItemGroup")), children @ (Literal(Constant(name: String)) :: _)) =>
-        println("In item group: " + name)
         createItemGroupWrapper(c)(name, children)
       case Apply(Ident(TermName("ComplexItem")),
         children @ (AssignOrNamedArg(Ident(TermName("name")), Literal(Constant(name: String))) :: _)) =>
-        println("In complex item: " + name)
         createComplexItemWrapper(c)(name, children)
       case Apply(Ident(TermName("ComplexItem")),
         children @ (Literal(Constant(name: String)) :: _)) =>
-        println("In complex item: " + name)
         createComplexItemWrapper(c)(name, children)
       case Apply(TypeApply(Ident(TermName("SimpleItem")), List(Ident(TypeName(_type: String)))),
-        children @ (AssignOrNamedArg(Ident(TermName("name")), Literal(Constant(name: String))) :: _)) =>
-        println("Simple item: " + (_type, name))
+        children @ (AssignOrNamedArg(Ident(TermName("name")), Literal(Constant(name: String))) :: _ :: _)) =>
         createSimpleItemWrapper(c)(name, _type)
       case Apply(TypeApply(Ident(TermName("SimpleItem")), List(Ident(TypeName(_type: String)))),
-        children @ (Literal(Constant(name: String)) :: _)) =>
-        println("Simple item: " + (_type, name))
+        children @ (Literal(Constant(name: String)) :: _ :: _)) =>
         createSimpleItemWrapper(c)(name, _type)
       case t =>
         val childrenWrappers = t.children.map(createWrapper(c)(_))
