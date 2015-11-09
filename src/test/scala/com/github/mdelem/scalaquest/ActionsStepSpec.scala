@@ -36,11 +36,11 @@ class ActionsStepSpec extends FlatSpec with Matchers {
   }
 
   "The next step after the last item of the questionnaire" should "be None" in {
-    actions.step(Request(q.item("i7"))) should be(Response(None))
+    actions.step(Request(q.group("i7"))) should be(Response(None))
   }
 
   "The next step after item 'i3'" should "be the next item group containing item 'i4'" in {
-    actions.step(Request(q.item("i3"))) should be(Response(Some(q.group("i4"))))
+    actions.step(Request(q.group("i3"))) should be(Response(Some(q.group("i4"))))
   }
 
   val qRandom = Questionnaire(
@@ -72,8 +72,8 @@ class ActionsStepSpec extends FlatSpec with Matchers {
   }
 
   "The next step after item 'i3'" should "be a random item group or None if the questionnaire is finished" in {
-    actionsRandom.step(Request(qRandom.item("i3"), "SSID-999-222")) should be(Response(Some(qRandom.group("ig1"))))
-    actionsRandom.step(Request(qRandom.item("i3"), "SSID-999-111")) should be(Response(None))
+    actionsRandom.step(Request(qRandom.group("i3"), "SSID-999-222")) should be(Response(Some(qRandom.group("ig1"))))
+    actionsRandom.step(Request(qRandom.group("i3"), "SSID-999-111")) should be(Response(None))
   }
 
   "The next step after the last item group of part 'p2'" should "be another random part (ie 'p1') or None if the questionnaire is finished" in {

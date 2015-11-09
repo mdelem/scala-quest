@@ -16,13 +16,13 @@ case class ItemGroup(name: String, randomized: Boolean = false, items: Seq[Item]
   private val itemMap: Map[String, Item] = items.map(i => (i.name, i)).toMap
   private val simpleItemMap: Map[String, SimpleItem[_]] = items.flatMap {
     case i @ SimpleItem(name, _, _) => Some((name, i))
-    case _                                => None
+    case _                          => None
   }.toMap
   def simpleItem: Map[String, SimpleItem[_]] =
     (simpleItemMap ++ complexItem.values.flatMap(ci => ci.item))
   val complexItem: Map[String, ComplexItem] = items.flatMap {
     case i @ ComplexItem(name, _, _) => Some((name, i))
-    case _                                 => None
+    case _                           => None
   }.toMap
   val item = simpleItemMap ++ complexItem ++ complexItem.values.flatMap(ci => ci.item)
 }
@@ -62,6 +62,8 @@ object Questionnaire {
 
 object Part {
   def apply(name: String, groups: Seq[ItemGroup]): Part = Part(name, false, groups)
+  def apply(name: String, randomized: Boolean, items: => Seq[Item] /*Anti type erasure magic*/): Part = Part(name, false, items.map(i => ItemGroup(i.name, Seq(i))))
+  def apply(name: String, items: => Seq[Item]): Part = Part(name, false, items.map(i => ItemGroup(i.name, Seq(i))))
 }
 
 object ItemGroup {
@@ -72,7 +74,6 @@ object ComplexItem {
   def apply(name: String, items: Seq[SimpleItem[_]]): ComplexItem = ComplexItem(name, false, items)
 
 }
-
 
 object Implicits {
 
@@ -87,15 +88,17 @@ object Implicits {
   implicit def itemGroupAsSeq(p: ItemGroup) = Seq(p)
   implicit class ItemGroupAsSeq(p: ItemGroup) {
     def ~(next: ItemGroup): Seq[ItemGroup] = Seq(p, next)
+    def ~(next: Item): Seq[ItemGroup] = Seq(p, ItemGroup(next.name, Seq(next)))
   }
   implicit class ItemGroupSeq(p: Seq[ItemGroup]) {
     def ~(next: ItemGroup): Seq[ItemGroup] = p :+ next
+    def ~(next: Item): Seq[ItemGroup] = p :+ ItemGroup(next.name, Seq(next))
   }
 
   implicit def itemAsSeq(i: Item) = Seq(i)
   implicit def simpleItemAsSeq[T](i: SimpleItem[T]) = Seq(i)
-  implicit def itemToItemGroup(i: Item) = ItemGroup(i.name, Seq(i))
-  implicit def itemToSeqItemGroup(i: Item) = Seq(ItemGroup(i.name, Seq(i)))
+  //  implicit def itemToItemGroup(i: Item) = ItemGroup(i.name, Seq(i))
+  //  implicit def itemToSeqItemGroup(i: Item) = Seq(ItemGroup(i.name, Seq(i)))
 
   implicit class ItemAsSeq(i: Item) {
     def ~(next: Item): Seq[Item] = Seq(i, next)
