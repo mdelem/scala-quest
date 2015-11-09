@@ -42,35 +42,35 @@ class QuestionnaireSpec extends FlatSpec with Matchers {
   // work as expected and there are no compile time errors
   Questionnaire(
     name = "q2",
-    Part(
-      SimpleItem[Int]("I like chocolate") ~
-        SimpleItem[Int]("I like vanilla") ~
-        ComplexItem(
-          SimpleItem[Boolean]("I prefer chocolate") ~
-            SimpleItem[Boolean]("I prefer vanilla"))) ~
-      Part(
-        ComplexItem(
-          SimpleItem[Boolean]("I prefer chocolate") ~
-            SimpleItem[Boolean]("I prefer vanilla")) ~
-          SimpleItem[Int]("I like chocolate") ~
-          SimpleItem[Int]("I like vanilla") ~
-          ItemGroup(
+    Part("p1", 
+      SimpleItem[Int]("i1", "I like chocolate") ~
+        SimpleItem[Int]("i2", "I like vanilla") ~
+        ComplexItem("i3", 
+          SimpleItem[Boolean]("i4", "I prefer chocolate") ~
+            SimpleItem[Boolean]("i5", "I prefer vanilla"))) ~
+      Part("p2", 
+        ComplexItem("i6", 
+          SimpleItem[Boolean]("i7", "I prefer chocolate") ~
+            SimpleItem[Boolean]("i8", "I prefer vanilla")) ~
+          SimpleItem[Int]("i9", "I like chocolate") ~
+          SimpleItem[Int]("i10", "I like vanilla") ~
+          ItemGroup("i11", 
             SimpleItem[Int]("d1", "Age") ~
-              ComplexItem(
-                SimpleItem[Boolean]("I prefer vanilla"))) ~
-            ItemGroup(
-              ComplexItem(
-                SimpleItem[Boolean]("I prefer vanilla")) ~
-                SimpleItem[Int]("d1", "Age"))) ~
-        Part(
-          SimpleItem[Int]("I like chocolate")) ~
-          Part(
-            ItemGroup(
-              ComplexItem(
-                SimpleItem[Boolean]("I prefer vanilla")))) ~
-            Part(
-              SimpleItem[Int]("I like chocolate") ~
-                ItemGroup(
-                  SimpleItem[Int]("d1", "Age"))))
+              ComplexItem("i12", 
+                SimpleItem[Boolean]("i13", "I prefer vanilla"))) ~
+            ItemGroup("i14", 
+              ComplexItem("i15", 
+                SimpleItem[Boolean]("i16", "I prefer vanilla")) ~
+                SimpleItem[Int]("d2", "Age"))) ~
+        Part(name = "p3", 
+          SimpleItem[Int]("i17", "I like chocolate")) ~
+          Part("p4", 
+            ItemGroup("i18", 
+              ComplexItem("i19", 
+                SimpleItem[Boolean]("i20", "I prefer vanilla")))) ~
+            Part("p5", 
+              SimpleItem[Int]("i20", "I like chocolate") ~
+                ItemGroup("i21", 
+                  SimpleItem[Int]("d3", "Age"))))
 
 }

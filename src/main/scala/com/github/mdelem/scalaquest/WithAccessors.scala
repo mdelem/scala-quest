@@ -95,7 +95,7 @@ object WithAccessorsMacro {
     val wrapperName = s"ComplexItem${encoded.capitalize}Wrapped"
     val body = children.map(createWrapper(c)(_)._2).mkString("\n")
 
-    (Some(wrapperName), s"""class $wrapperName(name: Option[String] = None, randomized: Boolean = false, items: Seq[SimpleItem[_]])
+    (Some(wrapperName), s"""class $wrapperName(name: String, randomized: Boolean = false, items: Seq[SimpleItem[_]])
       extends ComplexItem(name, randomized, items) {
       $body
     }
@@ -112,7 +112,7 @@ object WithAccessorsMacro {
     val wrapperName = s"ItemGroup${encoded.capitalize}Wrapped"
     val body = children.map(createWrapper(c)(_)._2).mkString("\n")
 
-    (Some(wrapperName), s"""class $wrapperName(name: Option[String] = None, randomized: Boolean = false,  items: Seq[Item])
+    (Some(wrapperName), s"""class $wrapperName(name: String, randomized: Boolean = false,  items: Seq[Item])
       extends ItemGroup(name, randomized, items) {
       $body
     }
@@ -129,7 +129,7 @@ object WithAccessorsMacro {
     val wrapperName = s"Part${encoded.capitalize}Wrapped"
     val body = children.map(createWrapper(c)(_)._2).mkString("\n")
 
-    (Some(wrapperName), s"""class $wrapperName(name: Option[String] = None, randomized: Boolean = false, groups: Seq[ItemGroup])
+    (Some(wrapperName), s"""class $wrapperName(name: String, randomized: Boolean = false, groups: Seq[ItemGroup])
       extends Part(name, randomized, groups) {
       $body
     }
@@ -146,7 +146,7 @@ object WithAccessorsMacro {
     val wrapperName = s"Questionnaire${encoded.capitalize}Wrapped"
     val body = children.map(createWrapper(c)(_)._2).mkString("\n")
 
-    (Some(wrapperName), s"""class $wrapperName(name: Option[String] = None, randomized: Boolean = false, parts: Seq[Part])
+    (Some(wrapperName), s"""class $wrapperName(name: String, randomized: Boolean = false, parts: Seq[Part])
           extends Questionnaire(name, randomized, parts) {
       $body
     }
