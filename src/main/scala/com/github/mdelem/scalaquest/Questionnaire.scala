@@ -6,7 +6,7 @@ trait Item {
 
 trait QuestionnaireNode
 
-case class SimpleItem[+T](name: String, proposition: String, acceptedValues: Seq[T] = Seq()) extends Item
+case class SimpleItem[T](name: String, proposition: String, acceptedValues: Seq[T] = Seq()) extends Item
 
 case class ComplexItem(name: String, randomized: Boolean = false, items: Seq[SimpleItem[_]]) extends Item {
   val item: Map[String, SimpleItem[_]] = items.map(i => (i.name, i)).toMap
@@ -73,54 +73,4 @@ object ItemGroup {
 object ComplexItem {
   def apply(name: String, items: Seq[SimpleItem[_]]): ComplexItem = ComplexItem(name, false, items)
 
-}
-
-object Implicits {
-
-  implicit def partAsSeq(p: Part) = Seq(p)
-  implicit class PartAsSeq(p: Part) {
-    def ~(next: Part): Seq[Part] = Seq(p, next)
-  }
-  implicit class PartSeq(p: Seq[Part]) {
-    def ~(next: Part): Seq[Part] = p :+ next
-  }
-
-  implicit def itemGroupAsSeq(p: ItemGroup) = Seq(p)
-  implicit class ItemGroupAsSeq(p: ItemGroup) {
-    def ~(next: ItemGroup): Seq[ItemGroup] = Seq(p, next)
-    def ~(next: Item): Seq[ItemGroup] = Seq(p, ItemGroup(next.name, Seq(next)))
-  }
-  implicit class ItemGroupSeq(p: Seq[ItemGroup]) {
-    def ~(next: ItemGroup): Seq[ItemGroup] = p :+ next
-    def ~(next: Item): Seq[ItemGroup] = p :+ ItemGroup(next.name, Seq(next))
-  }
-
-  implicit def itemAsSeq(i: Item) = Seq(i)
-  implicit def simpleItemAsSeq[T](i: SimpleItem[T]) = Seq(i)
-  //  implicit def itemToItemGroup(i: Item) = ItemGroup(i.name, Seq(i))
-  //  implicit def itemToSeqItemGroup(i: Item) = Seq(ItemGroup(i.name, Seq(i)))
-
-  implicit class ItemAsSeq(i: Item) {
-    def ~(next: Item): Seq[Item] = Seq(i, next)
-  }
-  implicit class ItemSeq(i: Seq[Item]) {
-    def ~(next: Item): Seq[Item] = i :+ next
-    def ~(next: ItemGroup): Seq[ItemGroup] = i.map(j => ItemGroup(j.name, Seq(j))) :+ next
-  }
-
-  implicit class SimpleItemAsSeq[T](i: SimpleItem[T]) {
-    def ~[U](next: SimpleItem[U]): Seq[SimpleItem[_]] = Seq(i, next)
-    def ~(next: ItemGroup): Seq[ItemGroup] = Seq(ItemGroup(i.name, Seq(i)), next)
-    def ~(next: ComplexItem): Seq[Item] = Seq(i, next)
-  }
-  implicit class SimpleItemSeq(i: Seq[SimpleItem[_]]) {
-    def ~[U](next: SimpleItem[U]): Seq[SimpleItem[_]] = i :+ next
-    def ~(next: ItemGroup): Seq[ItemGroup] = i.map(j => ItemGroup(j.name, Seq(j))) :+ next
-    def ~(next: ComplexItem): Seq[Item] = i :+ next
-  }
-
-  implicit class ComplexItemAsSeq(i: ComplexItem) {
-    def ~(next: ItemGroup): Seq[ItemGroup] = Seq(ItemGroup(i.name, Seq(i)), next)
-    def ~(next: Item): Seq[Item] = Seq(i, next)
-  }
 }

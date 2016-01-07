@@ -2,18 +2,18 @@ package com.github.mdelem.scalaquest
 
 import com.github.mdelem.scalaquest.Validator.Validates
 
-case class Answer[T, U <: SimpleItem[T]](item: U, value: T)
+case class Answer[T](item: SimpleItem[T], value: Any)
 
-case class Request(node: QuestionnaireNode, answers: Seq[Answer[_, _]] = Seq(), sessionId: String = "1") {
-  def answer[T](i: SimpleItem[T])(implicit v: Validates[T]): Option[T] = {
-    answers.find(_.item == i).map(a => v.validate(i, a.value.asInstanceOf[T]))
+case class Request(node: QuestionnaireNode, answers: Seq[Answer[_]] = Seq(), sessionId: String = "1") {
+  def answer[T](i: SimpleItem[_])(implicit v: Validates[T]): Option[T] = {
+    answers.find(_.item == i).map(a => v.validate(i.asInstanceOf[SimpleItem[T]], a.value.asInstanceOf[T]))
   }
 }
 object Request {
   def apply(node: QuestionnaireNode, sessionId: String): Request = new Request(node, Seq(), sessionId)
-  def apply(node: QuestionnaireNode, answers: Seq[Answer[_, _]]): Request =
+  def apply(node: QuestionnaireNode, answers: Seq[Answer[_]]): Request =
     new Request(node, answers)
-  def apply[T, U <: SimpleItem[T]](node: QuestionnaireNode, answer: Answer[T, U]): Request =
+  def apply(node: QuestionnaireNode, answer: Answer[_]): Request =
     new Request(node, Seq(answer))
 }
 

@@ -1,26 +1,27 @@
 package com.github.mdelem.scalaquest
 
 import org.scalatest._
-import com.github.mdelem.scalaquest.Implicits._
 
 class ActionsFiltersAndMethodsSpec extends FlatSpec with Matchers {
 
-  @WithAccessors
   val q = Questionnaire(
     name = "q1",
-    Part(
+    Seq(Part(
       name = "p1",
-      ItemGroup(name = "ig1",
-        SimpleItem[Int]("i1", "Age") ~
-          SimpleItem[String]("i2", "Gender")) ~
-        SimpleItem[Int]("i3", "I like chocolate") ~
-        SimpleItem[Int]("i4", "I like vanilla") ~
-        ComplexItem("ci1",
-          SimpleItem[Boolean]("i5", "I prefer chocolate") ~
-            SimpleItem[Boolean]("i6", "I prefer vanilla"))) ~
+      Seq(ItemGroup(name = "ig1",
+        Seq(SimpleItem[Int]("i1", "Age"),
+          SimpleItem[String]("i2", "Gender"))),
+        ItemGroup(name = "ig3",
+          Seq(SimpleItem[Int]("i3", "I like chocolate"))),
+        ItemGroup(name = "ig4",
+          Seq(SimpleItem[Int]("i4", "I like vanilla"))),
+        ItemGroup(name = "ig5",
+          Seq(ComplexItem("ci1",
+            Seq(SimpleItem[Boolean]("i5", "I prefer chocolate"),
+              SimpleItem[Boolean]("i6", "I prefer vanilla"))))))),
       Part(
         name = "p2",
-        SimpleItem[Boolean]("i7", "I answered this questionnaire truthfully")))
+        Seq(ItemGroup(name = "ig6", Seq(SimpleItem[Boolean]("i7", "I answered this questionnaire truthfully")))))))
 
   val defaultActions = Actions(q)
 
@@ -29,7 +30,7 @@ class ActionsFiltersAndMethodsSpec extends FlatSpec with Matchers {
   }
   "The default post'" should "step in the questionnaire" in {
     val request = Request(q.group("ig1"),
-      Seq(Answer(q._p1._ig1._i1, 40)))
+      Seq(Answer(q.simpleItem("i1"), 40)))
     defaultActions.service(request) should be(defaultActions.step(request))
   }
 
@@ -74,14 +75,14 @@ class ActionsFiltersAndMethodsSpec extends FlatSpec with Matchers {
 
   "Posts" should "not be chained" in {
     filteredActions.service(Request(q.group("ig1"),
-      Answer(q._p1._ig1._i1, 40))).parameters.get("postA") should be(None)
+      Answer(q.simpleItem("i1"), 40))).parameters.get("postA") should be(None)
     filteredActions.service(Request(q.group("ig1"),
-      Answer(q._p1._ig1._i1, 40))).parameters.get("postB") should be(Some("true"))
+      Answer(q.simpleItem("i1"), 40))).parameters.get("postB") should be(Some("true"))
 
-    filteredActions.service(Request(q.group("i7"),
-      Answer(q._p2._i7, true))).parameters.get("postA") should be(Some("true"))
-    filteredActions.service(Request(q.group("i7"),
-      Answer(q._p2._i7, true))).parameters.get("postB") should be(None)
+    filteredActions.service(Request(q.group("ig6"),
+      Answer(q.simpleItem("i7"), true))).parameters.get("postA") should be(Some("true"))
+    filteredActions.service(Request(q.group("ig6"),
+      Answer(q.simpleItem("i7"), true))).parameters.get("postB") should be(None)
 
   }
 
