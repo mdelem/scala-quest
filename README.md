@@ -1,10 +1,10 @@
-# scala-quest
+# Scala Quest
 A questionnaire library for scientific and marketing purposes.
 For now, mostly an excuse to explore Scala features.
 
 Other than the goal of learning, this project aims to provide a reusable and very flexible server-side library to define and run questionnaires.
-- the questionnaire definitions (content and order of parts, questions and items) should be easy to edit as this is often done by a non-technical person.
-- the questionnaire branching and response handling should have sensible defaults but at the same time be extremely flexible as there are always special cases (custom API calls, authentication and authorization, conversions to relational data, etc). This would be the job of the Scala developer.
+- The questionnaire definitions (content and order of parts, questions and items) should be easy to edit as this is often done by a non-technical person.
+- The questionnaire branching and response handling should have sensible defaults but at the same time be extremely flexible as there are always special cases (custom API calls, authentication and authorization, conversions to relational data, etc). This would be the job of the Scala developer.
 
 
 ## What I learned
