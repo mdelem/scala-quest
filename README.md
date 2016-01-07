@@ -4,6 +4,7 @@ A questionnaire library for scientific and marketing purposes. For now, mostly a
 ## What I learned
 ### The good
 - The 'Action' API that handles questionnaire progress, branching and response storage is solid. It could probably be used as is in production.
+
 ### The improvable
 - I abused implicits to create a nice questionnaire-builing API so that questionnaire definitions are checked at compile time. This is pretty nice but I'm considering switching to a parsed DSL so that end-users without any Scala experience can use it. The auto-indentation doesn't make things too beautiful either. Or I could just use JSON as questionnaire definitions.
 - Macros makes you feel like a wizard but are a pain for maintenance / refactoring. I used them to improve type-safety but with mixed results.
