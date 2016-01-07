@@ -18,28 +18,28 @@ case class ItemGroup(name: String, randomized: Boolean = false, items: Seq[Item]
     case i @ SimpleItem(name, _, _) => Some((name, i))
     case _                          => None
   }.toMap
-  def simpleItem: Map[String, SimpleItem[_]] =
-    (simpleItemMap ++ complexItem.values.flatMap(ci => ci.item))
   val complexItem: Map[String, ComplexItem] = items.flatMap {
     case i @ ComplexItem(name, _, _) => Some((name, i))
     case _                           => None
   }.toMap
+  val simpleItem: Map[String, SimpleItem[_]] =
+    (simpleItemMap ++ complexItem.values.flatMap(ci => ci.item))
   val item = simpleItemMap ++ complexItem ++ complexItem.values.flatMap(ci => ci.item)
 }
 
 case class Part(name: String, randomized: Boolean = false, groups: Seq[ItemGroup]) extends QuestionnaireNode {
   val group: Map[String, ItemGroup] = groups.map(g => (g.name, g)).toMap
-  def complexItem: Map[String, ComplexItem] = groups.flatMap(_.complexItem).toMap
-  def simpleItem: Map[String, SimpleItem[_]] = groups.flatMap(_.simpleItem).toMap
-  def item: Map[String, Item] = groups.flatMap(_.item).toMap
+  val complexItem: Map[String, ComplexItem] = groups.flatMap(_.complexItem).toMap
+  val simpleItem: Map[String, SimpleItem[_]] = groups.flatMap(_.simpleItem).toMap
+  val item: Map[String, Item] = groups.flatMap(_.item).toMap
 }
 
 case class Questionnaire(name: String, randomized: Boolean = false, parts: Seq[Part]) extends QuestionnaireNode {
   val part: Map[String, Part] = parts.map(p => (p.name, p)).toMap
   val group: Map[String, ItemGroup] = parts.flatMap(_.group).toMap
-  def complexItem: Map[String, ComplexItem] = parts.flatMap(_.complexItem).toMap
-  def simpleItem: Map[String, SimpleItem[_]] = parts.flatMap(_.simpleItem).toMap
-  def item: Map[String, Item] = parts.flatMap(_.item).toMap
+  val complexItem: Map[String, ComplexItem] = parts.flatMap(_.complexItem).toMap
+  val simpleItem: Map[String, SimpleItem[_]] = parts.flatMap(_.simpleItem).toMap
+  val item: Map[String, Item] = parts.flatMap(_.item).toMap
 
   private val itemGroupParentMap: Map[ItemGroup, Part] = (parts.flatMap { p =>
     p.groups.map(g => (g, p))
@@ -62,8 +62,6 @@ object Questionnaire {
 
 object Part {
   def apply(name: String, groups: Seq[ItemGroup]): Part = Part(name, false, groups)
-  def apply(name: String, randomized: Boolean, items: => Seq[Item] /*Anti type erasure magic*/): Part = Part(name, false, items.map(i => ItemGroup(i.name, Seq(i))))
-  def apply(name: String, items: => Seq[Item]): Part = Part(name, false, items.map(i => ItemGroup(i.name, Seq(i))))
 }
 
 object ItemGroup {
