@@ -13,7 +13,7 @@ class RequestValidatorSpec extends FlatSpec with Matchers {
       if (x.value >= 1 && x.value <= 10)
         x
       else
-        throw new ValidationException(s"Invalid value: $x; Must be an integer between 1 and 10.}")
+        throw new ValidationException(s"Invalid value: $x; Must be an integer between 1 and 10.")
     }
   }
 
