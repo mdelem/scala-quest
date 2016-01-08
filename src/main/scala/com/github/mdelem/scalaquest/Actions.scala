@@ -1,12 +1,10 @@
 package com.github.mdelem.scalaquest
 
-import com.github.mdelem.scalaquest.Validator.Validates
-
-case class Answer[T](item: SimpleItem[T], value: Any)
+case class Answer[T](item: SimpleItem[T], value: String)
 
 case class Request(node: QuestionnaireNode, answers: Seq[Answer[_]] = Seq(), sessionId: String = "1") {
-  def answer[T](i: SimpleItem[_])(implicit v: Validates[T]): Option[T] = {
-    answers.find(_.item == i).map(a => v.validate(i.asInstanceOf[SimpleItem[T]], a.value.asInstanceOf[T]))
+  def answer[T](i: SimpleItem[T]): Option[T] = {
+    answers.find(_.item == i).map(a => i.validator.validate(a.value))
   }
 }
 object Request {
@@ -116,7 +114,7 @@ class Actions(q: Questionnaire, n: QuestionnaireNode, filters: Map[Questionnaire
   }
 
   private def getNextItemGroup(previous: ItemGroup, r: Request): Option[ItemGroup] = {
-    val p : Part = q.parent(previous)
+    val p: Part = q.parent(previous)
     val groupsInOrder = inOrder(p.groups, q.randomized, r.sessionId)
     val nextIndex = groupsInOrder.indexOf(previous) + 1
     if (groupsInOrder.isDefinedAt(nextIndex))

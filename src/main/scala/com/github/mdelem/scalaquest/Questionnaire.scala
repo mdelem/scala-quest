@@ -1,12 +1,14 @@
 package com.github.mdelem.scalaquest
 
+import Validator.Validates
+
 trait Item {
   def name: String
 }
 
 trait QuestionnaireNode
 
-case class SimpleItem[T](name: String, proposition: String, acceptedValues: Seq[T] = Seq()) extends Item
+case class SimpleItem[T](name: String, proposition: String, reversed: Boolean = false)(implicit val validator: Validates[T]) extends Item
 
 case class ComplexItem(name: String, randomized: Boolean = false, items: Seq[SimpleItem[_]]) extends Item {
   val item: Map[String, SimpleItem[_]] = items.map(i => (i.name, i)).toMap

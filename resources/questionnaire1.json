@@ -1,0 +1,100 @@
+{
+	"name": "q1",
+	"parts": [
+		{
+			"name": "p1",
+			"groups": [
+				{
+					"name": "ig1",
+					"items": [
+						{
+							"name": "i1",
+							"proposition": "Age",
+							"type": "Int",
+							"validator": {
+								"min": 0,
+								"max": 140,
+								"step": 1
+							}
+						},
+						{
+							"name": "i2",
+							"proposition": "Gender",
+							"type": "String",
+							"validator": {
+								"values": ["M", "F", "O"]
+							}
+						}
+					]
+				},
+				{
+					"name": "ig2",
+					"items": [
+						{
+							"name": "i3",
+							"proposition": "I like chocolate",
+							"type": "Int",
+							"validator": {
+								"min": 1,
+								"max": 10,
+								"step": 1
+							}
+						}
+					]
+				},
+				{
+					"name": "ig3",
+					"items": [
+						{
+							"name": "i4",
+							"proposition": "I don't like vanilla",
+							"type": "Int",
+							"validator": {
+								"min": 1,
+								"max": 10,
+								"step": 1
+							},
+							"reversed": true
+						}
+					]
+				},
+				{
+					"name": "ig4",
+					"items": [
+						{
+							"name": "ci1",
+							"proposition": "What do you prefer?",
+							"items": [
+								{
+									"name": "i5",
+									"proposition": "I prefer chocolate",
+									"type": "Boolean"
+								},
+								{
+									"name": "i6",
+									"proposition": "I prefer vanilla",
+									"type": "Boolean"
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "p2",
+			"groups": [
+				{
+					"name": "ig5",
+					"items": [
+						{
+							"name": "i7",
+							"proposition": "I answered this questionnaire truthfully",
+							"type": "Boolean"
+						}
+					]
+				}
+			]
+		}
+	]
+}
