@@ -19,6 +19,26 @@ object Validator {
         x
     }
   }
+  
+  case class ValidatesLong(min: Long, max: Long, step: Long) extends Validates[Long] {
+    def validate(input: String): Long = {
+      val x = input.toLong
+      if (x < min || x > max || x % step != 0)
+        throw new ValidationException(s"Invalid value: $x; Must be between ${min} and ${max} and divisible by ${step}")
+      else
+        x
+    }
+  }
+  
+  case class ValidatesDouble(min: Double, max: Double) extends Validates[Double] {
+    def validate(input: String): Double = {
+      val x = input.toDouble
+      if (x < min || x > max)
+        throw new ValidationException(s"Invalid value: $x; Must be between ${min} and ${max}")
+      else
+        x
+    }
+  }
 
   case class ValidatesString(values: Set[String]) extends Validates[String] {
     def validate(input: String): String = {
@@ -55,7 +75,7 @@ object Validator {
         input
       }
     }
-    implicit object ValidatesDate extends Validates[DateTime] {
+    implicit object ValidatesDateTime extends Validates[DateTime] {
       def validate(input: String): DateTime = {
         DateTime.parse(input)
       }

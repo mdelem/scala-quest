@@ -10,7 +10,7 @@ trait QuestionnaireNode
 
 case class SimpleItem[T](name: String, proposition: String, reversed: Boolean = false)(implicit val validator: Validates[T]) extends Item
 
-case class ComplexItem(name: String, randomized: Boolean = false, items: Seq[SimpleItem[_]]) extends Item {
+case class ComplexItem(name: String, proposition: Option[String], randomized: Boolean = false, items: Seq[SimpleItem[_]]) extends Item {
   val item: Map[String, SimpleItem[_]] = items.map(i => (i.name, i)).toMap
 }
 
@@ -21,7 +21,7 @@ case class ItemGroup(name: String, randomized: Boolean = false, items: Seq[Item]
     case _                          => None
   }.toMap
   val complexItem: Map[String, ComplexItem] = items.flatMap {
-    case i @ ComplexItem(name, _, _) => Some((name, i))
+    case i @ ComplexItem(name, _,_, _) => Some((name, i))
     case _                           => None
   }.toMap
   val simpleItem: Map[String, SimpleItem[_]] =
@@ -71,6 +71,6 @@ object ItemGroup {
 }
 
 object ComplexItem {
-  def apply(name: String, items: Seq[SimpleItem[_]]): ComplexItem = ComplexItem(name, false, items)
+  def apply(name: String, items: Seq[SimpleItem[_]]): ComplexItem = ComplexItem(name, None, false, items)
 
 }

@@ -2,7 +2,7 @@ package com.github.mdelem.scalaquest
 
 import org.scalatest._
 import javax.xml.bind.ValidationException
-import Validator.{ValidatesInt,ValidatesString}
+import Validator.{ ValidatesInt, ValidatesString }
 
 class RequestValidatorSpec extends FlatSpec with Matchers {
 
@@ -22,6 +22,7 @@ class RequestValidatorSpec extends FlatSpec with Matchers {
         name = "p2",
         Seq(ItemGroup(name = "ig6", Seq(SimpleItem[Boolean]("i7", "I answered this questionnaire truthfully")))))))
 
+  //TODO: replace cast with something more pretty
   val item = q.simpleItem("i3").asInstanceOf[SimpleItem[Int]]
   val answer = Answer(item, "10")
   val r = Request(q.group("ig3"), answer)
