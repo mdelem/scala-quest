@@ -1,11 +1,17 @@
-package com.github.mdelem.scalaquest
+package com.github.mdelem.scalaquest.configuration
 
 import play.api.libs.json._
-import java.net.URL
 import java.io.InputStream
 import scala.collection.mutable
 import javax.xml.bind.ValidationException
-import com.github.mdelem.scalaquest.Validator._
+import com.github.mdelem.scalaquest.engine.Validator._
+import com.github.mdelem.scalaquest.engine.ComplexItem
+import com.github.mdelem.scalaquest.engine.Item
+import com.github.mdelem.scalaquest.engine.ItemGroup
+import com.github.mdelem.scalaquest.engine.Part
+import com.github.mdelem.scalaquest.engine.Questionnaire
+import com.github.mdelem.scalaquest.engine.SimpleItem
+import play.api.libs.json.JsValue.jsValueToJsLookup
 
 object QuestionnaireJsonParser {
   def parse(inputStream: InputStream): Questionnaire = {

@@ -1,6 +1,11 @@
 package com.github.mdelem.scalaquest
 
 import org.scalatest._
+import com.github.mdelem.scalaquest.engine.SimpleItem
+import com.github.mdelem.scalaquest.engine.Questionnaire
+import com.github.mdelem.scalaquest.engine.Part
+import com.github.mdelem.scalaquest.engine.ItemGroup
+import com.github.mdelem.scalaquest.engine.ComplexItem
 
 class QuestionnaireSpec extends FlatSpec with Matchers {
 

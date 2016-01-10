@@ -1,4 +1,6 @@
-package com.github.mdelem.scalaquest
+package com.github.mdelem.scalaquest.engine
+
+import Actions._
 
 case class Answer[T](item: SimpleItem[T], value: String)
 
@@ -15,12 +17,7 @@ object Request {
     new Request(node, Seq(answer))
 }
 
-case class Response(node: Option[QuestionnaireNode], parameters: Map[String, String])
-object Response {
-  def apply(node: Option[QuestionnaireNode]): Response = {
-    Response(node, Map())
-  }
-}
+case class Response(node: Option[QuestionnaireNode], parameters: Map[String, String] = Map())
 
 object Actions {
   type Filter = (Request, Actions) => Response
@@ -41,8 +38,6 @@ object Actions {
     new Actions(q, n, filters, gets, posts)
   }
 }
-
-import Actions._
 class Actions(q: Questionnaire, n: QuestionnaireNode, filters: Map[QuestionnaireNode, Filter],
               gets: Map[QuestionnaireNode, Method], posts: Map[QuestionnaireNode, Method]) {
 

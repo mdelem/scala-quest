@@ -1,4 +1,4 @@
-package com.github.mdelem.scalaquest
+package com.github.mdelem.scalaquest.engine
 
 import org.scalatest._
 

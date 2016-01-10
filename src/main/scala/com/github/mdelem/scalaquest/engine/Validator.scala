@@ -1,7 +1,6 @@
-package com.github.mdelem.scalaquest
+package com.github.mdelem.scalaquest.engine
 
 import javax.xml.bind.ValidationException
-import scala.Double
 import com.github.nscala_time.time.Imports._
 
 object Validator {
@@ -12,7 +11,7 @@ object Validator {
 
   case class ValidatesInt(min: Int, max: Int, step: Int) extends Validates[Int] {
     def validate(input: String): Int = {
-      val x = input.toInt
+      val x = wrapException(()=>input.toInt)
       if (x < min || x > max || x % step != 0)
         throw new ValidationException(s"Invalid value: $x; Must be between ${min} and ${max} and divisible by ${step}")
       else
@@ -22,7 +21,7 @@ object Validator {
   
   case class ValidatesLong(min: Long, max: Long, step: Long) extends Validates[Long] {
     def validate(input: String): Long = {
-      val x = input.toLong
+      val x = wrapException(()=>input.toLong)
       if (x < min || x > max || x % step != 0)
         throw new ValidationException(s"Invalid value: $x; Must be between ${min} and ${max} and divisible by ${step}")
       else
@@ -32,7 +31,7 @@ object Validator {
   
   case class ValidatesDouble(min: Double, max: Double) extends Validates[Double] {
     def validate(input: String): Double = {
-      val x = input.toDouble
+      val x = wrapException(()=>input.toDouble)
       if (x < min || x > max)
         throw new ValidationException(s"Invalid value: $x; Must be between ${min} and ${max}")
       else
@@ -52,22 +51,22 @@ object Validator {
   object Validates {
     implicit object ValidatesInt extends Validates[Int] {
       def validate(input: String): Int = {
-        input.toInt
+        wrapException(()=>input.toInt)
       }
     }
     implicit object ValidatesLong extends Validates[Long] {
       def validate(input: String): Long = {
-        input.toLong
+        wrapException(()=>input.toLong)
       }
     }
     implicit object ValidatesDouble extends Validates[Double] {
       def validate(input: String): Double = {
-        input.toDouble
+        wrapException(()=>input.toDouble)
       }
     }
     implicit object ValidatesBoolean extends Validates[Boolean] {
       def validate(input: String): Boolean = {
-        input.toBoolean
+        wrapException(()=>input.toBoolean)
       }
     }
     implicit object ValidatesString extends Validates[String] {
@@ -77,8 +76,17 @@ object Validator {
     }
     implicit object ValidatesDateTime extends Validates[DateTime] {
       def validate(input: String): DateTime = {
-        DateTime.parse(input)
+        wrapException(()=>DateTime.parse(input))
       }
+    }
+  }
+  
+  private def wrapException[T](call: () => T) = {
+    try {
+      call()
+    } catch {
+      case e:NumberFormatException => throw new ValidationException(e)
+      case e:IllegalArgumentException => throw new ValidationException(e)
     }
   }
 

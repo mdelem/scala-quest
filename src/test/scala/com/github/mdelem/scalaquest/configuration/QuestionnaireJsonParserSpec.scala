@@ -2,6 +2,8 @@ package com.github.mdelem.scalaquest
 
 import org.scalatest._
 import javax.xml.bind.ValidationException
+import com.github.mdelem.scalaquest.configuration.QuestionnaireJsonParser
+import com.github.mdelem.scalaquest.engine.Validator
 import Validator.{ ValidatesInt, ValidatesString }
 
 class QuestionnaireJsonParserSpec extends FlatSpec with Matchers {
